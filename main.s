@@ -149,17 +149,6 @@ e2:
 	bl start
 	
 	mov r4,r0
-	ldr r2,=stringpointers
-	mov r5,#0
-q:	ldr r3,[r0]
-	str r3,[r2]
-	add r0,r0,#4
-	add r2,r2,#4
-	add r5,r5,#1
-	cmp r5,r1
-	beq p 
-	bne q
-p:	
 	
 	ldr r0, =eighth_string
 	bl prints
@@ -209,17 +198,17 @@ dupli:
 newline:
 	.asciz "\n"
 first_string:
-	.asciz "Enter the size of first list of strings:\n"
+	.asciz "E:\n"
 second_string:
-	.asciz "Enter the first list of strings:\n"
+	.asciz "E:\n"
 third_string:
-	.asciz "Enter the size of second list of strings:\n"
+	.asciz "E:\n"
 fourth_string:
-	.asciz "Enter the second list of strings:\n"
+	.asciz "E:\n"
 fifth_string:
-	.asciz "Enter the comparison mode(0 if case-insensitive and 1 if case-sensitive):\n"
+	.asciz "E:\n"
 sixth_string:
-	.asciz "Enter the duplicate removal option (0 if duplicates not to be removed and 1 if duplicates are to be removed):\n"
+	.asciz "E:\n"
 seventh_string:
 	.asciz "The final list of strings:\n"
 eighth_string:
