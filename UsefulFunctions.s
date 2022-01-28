@@ -216,16 +216,23 @@ atoi:
 	ldreqb	r1, [r0], #1
 	b	3f
 2:	cmp	r1, #9
-	bgt	4f
+	bgt	5f
 	mul	r2, r4, r2
 	add	r2, r2, r1
 	ldrb	r1, [r0], #1
-3:	subs	r1, r1, #'0'
+3:	cmp r1,#0x08
+	beq 4f
+	subs	r1, r1, #'0'
 	bge	2b
-4:	cmp	r3, #0
+4:	
+	cmp	r3, #0
 	moveq	r0, r2
 	mvnne	r0, r2
 	ldmfd	sp!, {r1-r4,pc}
+5:  ldr r0,=message
+	bl prints
+	mov r0,#0x18
+	swi 0x123456
 @ test function, invoked if control enters at top of the file
 runtests:
 	stmfd	sp!, {r0-r3,lr}
