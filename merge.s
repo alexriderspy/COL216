@@ -16,8 +16,6 @@
 @r0 = 0 means equal, r1 = 1 means 1st is less, r2 = 2 means 1st is more.
 
 start:
-	
-	
 	mov r3,#0
 	mov r12,#0
 	mov r8,#0

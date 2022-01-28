@@ -1,6 +1,7 @@
-.extern UsefulFunctions
+.extern atoi,itoa,fgets,prints
 .extern start
-.extern output_number
+.extern checkIfDup
+.extern checkIfSorted
 @auxiliaryinfo,#0 -> 1st string size, #4 ->2nd string size, #8 -> comp, #12 -> dup
 .text
 	ldr r8, =auxiliaryinfo
@@ -13,9 +14,7 @@
 	mov r1,#40
 	mov r2,#0
 	bl fgets
-	
 	bl atoi
-	
 	
 	cmp r0,#0
 	bgt e3
@@ -49,8 +48,8 @@ stringinput1:
 
 	cmp r6,r7
 	bne stringinput1
-
-@2nd list
+	
+list2:
 	
 	ldr r0, =third_string
 	bl prints
@@ -133,9 +132,39 @@ e1:
 	mov r0,#0x18
 	swi 0x123456
 e2:
+	
 	str r0,[r8,#16]
+	
+	@error checking
+	
+	@first is sorted or not
+	
+	mov r0,r5
+	ldr r1,[r8]
+	ldr r2,[r8,#12]
+	bl checkIfSorted
+	
+	@second is sorted or not
+	
+	add r0,r5,r1,LSL #2
+	ldr r1,[r8,#4]
+	bl checkIfSorted
+	
+	ldr r6,[r8,#16]
+	cmp r6,#0
+	beq fn
 
+	mov r0,r5
+	ldr r1,[r8]
+	ldr r2,[r8,#12]
+	bl checkIfDup
+	
+	add r0,r5,r1,LSL #2
+	ldr r1,[r8,#4]
+	bl checkIfDup
+	
 
+fn:
 	mov r0,r5
 	ldr r2,[r8]
 	add r2,r5,r2,LSL #2
@@ -146,7 +175,7 @@ e2:
 	ldr r2,[r8,#12]
 	ldr r6,[r8,#16]
 	
-	bl start
+	bl start @code branches into merge routine
 	
 	mov r4,r0
 	
@@ -215,3 +244,5 @@ eighth_string:
 	.asciz "The size of final list of strings:\n"
 ninth_string:
 	.asciz "Invalid input\n"
+tenth_string:
+	.asciz "Input list is not sorted/contain duplicates.\n"
