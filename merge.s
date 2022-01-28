@@ -17,7 +17,7 @@
 
 start:
 	
-	ldr r7,=MergedListOfPointers
+	
 	mov r3,#0
 	mov r12,#0
 	mov r8,#0
@@ -49,8 +49,8 @@ equal:
 	ldr r2,[sp,#12]
 	add sp,sp,#16
 	
-	str r9,[r7,#0]
-	add r7,r7,#4
+	str r9,[sp,#-4]!
+	
 	add r0,r0,#4
 	add r3,r3,#1
 	add r8,r8,#1
@@ -82,8 +82,8 @@ less:
 	add sp,sp,#16
 	
 	
-	str r9,[r7,#0]
-	add r7,r7,#4
+	str r9,[sp,#-4]!
+	
 	add r0,r0,#4
 	add r3,r3,#1
 	add r8,r8,#1
@@ -93,9 +93,9 @@ less:
 endof1st:
 	
 	ldr r10,[r1]
-	str r10,[r7,#0]
+	str r10,[sp,#-4]!
 
-	add r7,r7,#4
+	
 	add r1,r1,#4
 	add r12,r12,#1
 	add r8,r8,#1
@@ -109,8 +109,8 @@ greater:
 	ldr r2,[sp,#12]
 	add sp,sp,#16
 
-	str r10,[r7,#0]
-	add r7,r7,#4
+	str r10,[sp,#-4]!
+	
 	add r1,r1,#4
 	add r12,r12,#1
 	add r8,r8,#1
@@ -120,8 +120,8 @@ greater:
 endof2nd:
 	
 	ldr r9,[r0]
-	str r9,[r7,#0]
-	add r7,r7,#4
+	str r9,[sp,#-4]!
+	
 	add r0,r0,#4
 	add r3,r3,#1
 	add r8,r8,#1
@@ -129,13 +129,29 @@ endof2nd:
 	beq endofboth
 	b endof2nd	
 endofboth:
-	sub r7,r7,r8,LSL #2
-	mov r0,r7
+	sub r0,r0,r4,LSL #2
+	mov r4,r0
+	
+	mov r1,sp
+	add r1,r1,r8,LSL #2
+	sub r1,r1,#4
+	mov r3,#0
+	
+loop:
+	ldr r7,[r1]
+	str r7,[r0]
+	add r0,r0,#4
+	sub r1,r1,#4
+	add r3,r3,#1
+	cmp r3,r8
+	beq final
+	b loop
+	
+final:
+	mov r0,r4
 	mov r1,r8
+	add sp,sp,r8,LSL #2
 	ldr pc,[sp],#4
 	
 	
-.data
-MergedListOfPointers:
-	.space 200,0
 	
