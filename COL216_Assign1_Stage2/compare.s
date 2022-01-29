@@ -5,6 +5,7 @@
 @ r0 = #0 => equal, r0 = #1 => 1st is less, r0 = #2 => 1st is more
 
 compare:
+	stmfd	sp!, {r1-r6,lr}
 	cmp r2,#1
 	beq Loop1
 	bne Loop0
@@ -65,7 +66,8 @@ greater:
 	mov r0,#2
 	b ret
 ret: 
-	mov pc,lr
+	ldmfd	sp!, {r1-r6,pc}
+	
 equal1: 
 	add r0,r0,#1
 	add r1,r1,#1
