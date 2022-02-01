@@ -1,7 +1,6 @@
 .extern atoi,itoa,fgets,prints,strlen
 .extern start
-.extern checkIfDup
-.extern checkIfSorted
+.extern mergesort
 
 @auxiliaryinfo,#0 -> 1st string size, #4 ->2nd string size, #8 -> comparison mode, #12 -> duplicate removal mode
 @atoi function checks if input string is a number or not, if not, it returns an error message
