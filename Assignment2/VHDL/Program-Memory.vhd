@@ -4,7 +4,7 @@ use IEEE.numeric_std.all;
 
 entity pm is
     port(
-        rd: in std_logic_vector(3 downto 0);
+        rd: in std_logic_vector(5 downto 0);
         dd: out std_logic_vector(31 downto 0)
         );
     end pm;

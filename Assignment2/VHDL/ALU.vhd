@@ -14,7 +14,6 @@ end ALU;
 
 architecture beh_ALU of ALU is
     signal temp: std_logic_vector(32 downto 0);
-    signal temp2: std_logic_vector(31 downto 0) := (others => '0');
     begin 
     process(a,b,cin,opcode)
         begin 
