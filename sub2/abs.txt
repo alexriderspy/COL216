@@ -1,0 +1,20 @@
+Enter the size of list of strings:\\
+5\\
+Enter the list of strings:\\
+mac\\
+WINDOWS\\
+linux\\
+UBUNTU\\
+done\\
+Enter the comparison mode(0 if case-insensitive and 1 if case-sensitive):\\
+0\\
+Enter the duplicate removal option (0 if duplicates not to be removed and 1 if duplicates are to be removed):\\
+0\\
+The size of final sorted list of strings:\\
+5\\
+The final sorted list of strings:\\
+done\\
+linux\\
+mac\\
+UBUNTU\\
+WINDOWS\\

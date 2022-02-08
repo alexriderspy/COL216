@@ -1,0 +1,14 @@
+Stage 2 report
+
+1) The function merge.s merges 2 string lists, using the function compare.s I had written for stage 1.
+
+Design decisions:
+@r0 has pointer to 1st list of strings
+@r1 has pointer to 2nd list of strings
+@r2 has comparison mode - 0 if case-insensitive, 1 means case-sensitive.
+@r3,r12 will be used to maintain i,j where i is number of strings processed in list 1, j is the number of strings processed in list 2.-caller needs to store them
+@r4 has number of strings in 1st list
+@r5 has number of strings in 2nd list
+@r6 has duplicate removal option - 0 if duplicates not to be removed, 1 if duplicates are to be removed.
+@r0 has the final merged list
+@r1 has the final length of the merged list

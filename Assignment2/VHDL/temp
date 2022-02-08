@@ -1,0 +1,20 @@
+case Op is
+    when "000" =>
+        Reg3 <= Reg1 + Reg2;  --addition
+    when "001" =>
+        Reg3 <= Reg1 - Reg2; --subtraction
+    when "010" =>
+        Reg3 <= not Reg1;  --NOT gate
+    when "011" =>
+        Reg3 <= Reg1 nand Reg2; --NAND gate
+    when "100" =>
+        Reg3 <= Reg1 nor Reg2; --NOR gate              
+    when "101" =>
+        Reg3 <= Reg1 and Reg2;  --AND gate
+    when "110" =>
+        Reg3 <= Reg1 or Reg2;  --OR gate   
+    when "111" =>
+        Reg3 <= Reg1 xor Reg2; --XOR gate  
+    when others =>
+        NULL;
+end case;   
