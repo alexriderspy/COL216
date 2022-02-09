@@ -13,51 +13,43 @@ entity ALU is
 end ALU;
 
 architecture beh_ALU of ALU is
-    signal temp: std_logic_vector(32 downto 0);
+    
     begin 
     process(a,b,cin,opcode)
+        variable temp: std_logic_vector(32 downto 0);
         begin 
-        cout <= '0';
+        cout <= cin;
         case opcode is
-        when "0000" =>
+        when "0000" | "1000" =>
             res <= std_logic_vector(signed(a) and signed(b));
-        when "0001" =>
+        when "0001" | "1001" =>
             res <= std_logic_vector(signed(a) xor signed(b));
-        when "0010" =>
-            temp <= std_logic_vector(signed('0' & a) - signed('0' & b));
+        when "0010" | "1010" =>
+            temp := std_logic_vector(signed('0' & a) - signed('0' & b));
             cout <= std_logic(temp(32));
+            
             res <= temp(31 downto 0);
         when "0011" =>
-            temp <= std_logic_vector(signed('0' & b) - signed('0' & a));
+            temp := std_logic_vector(signed('0' & b) - signed('0' & a));
             cout <= std_logic(temp(32));
+            
             res <= temp(31 downto 0);
-        when "0100" =>
-            temp <= std_logic_vector(signed('0' & a) + signed('0' & b));
+        when "0100" | "1011" =>
+            temp := std_logic_vector(signed('0' & a) + signed('0' & b));
             cout <= std_logic(temp(32));
             res <= temp(31 downto 0);
         when "0101" =>
-            temp <= std_logic_vector(signed('0' & a) + signed('0' & b) + signed'('0'&cin));
+            temp := std_logic_vector(signed('0' & a) + signed('0' & b) + signed'('0'&cin));
+            
             cout <= std_logic(temp(32));
             res <= temp(31 downto 0);
 
         when "0110" =>
-            temp <= std_logic_vector(signed('0' & a) + signed('0' & not(b)) + signed'('0'&cin));
+            temp := std_logic_vector(signed('0' & a) + signed('0' & not(b)) + signed'('0'&cin));
             cout <= std_logic(temp(32));
             res <= temp(31 downto 0);
         when "0111" =>
-            temp <= std_logic_vector(signed('0' & not(a)) + signed('0' & b) + signed'('0'&cin));
-            cout <= std_logic(temp(32));
-            res <= temp(31 downto 0);
-        when "1000" =>
-            res <= std_logic_vector(signed(a) and signed(b));  
-        when "1001" =>
-            res <= std_logic_vector(signed(a) xor signed(b)); 
-        when "1010" =>
-            temp <= std_logic_vector(signed('0' & a) - signed('0' & b));
-            cout <= std_logic(temp(32));
-            res <= temp(31 downto 0);
-        when "1011" =>
-            temp <= std_logic_vector(signed('0' & a) + signed('0' & b));
+            temp := std_logic_vector(signed('0' & not(a)) + signed('0' & b) + signed'('0'&cin));
             cout <= std_logic(temp(32));
             res <= temp(31 downto 0);
         when "1100" =>
@@ -65,7 +57,7 @@ architecture beh_ALU of ALU is
         when "1101" =>
             res <= std_logic_vector(signed(b));
         when "1110" =>
-            temp <= std_logic_vector(signed('0' & a) + signed('0' & not(b)));
+            temp := std_logic_vector(signed('0' & a) + signed('0' & not(b)));
             cout <= std_logic(temp(32));
             res <= temp(31 downto 0);
         when "1111" =>

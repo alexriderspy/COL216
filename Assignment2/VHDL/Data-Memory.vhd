@@ -4,7 +4,7 @@ use IEEE.numeric_std.all;
 
 entity dm is
     port(
-        addr: in std_logic_vector(3 downto 0);
+        addr: in std_logic_vector(5 downto 0);
         clk: in std_logic;
         din: in std_logic_vector(31 downto 0);
         dout: out std_logic_vector(31 downto 0);
@@ -17,12 +17,9 @@ architecture dm_arch of dm is
     signal dmem: table;
 
 begin
-    read : process(addr)
-    begin
-        dout <= dmem(to_integer(unsigned(addr)));
-    end process read; 
+   	dout <= dmem(to_integer(unsigned(addr)));
 
-    write: process(clk)
+   	write: process(clk)
     begin
         if (rising_edge(clk)) then
             if wn(3) = '1' then
