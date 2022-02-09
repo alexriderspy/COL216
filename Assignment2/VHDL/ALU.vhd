@@ -57,9 +57,7 @@ architecture beh_ALU of ALU is
         when "1101" =>
             res <= std_logic_vector(signed(b));
         when "1110" =>
-            temp := std_logic_vector(signed('0' & a) + signed('0' & not(b)));
-            cout <= std_logic(temp(32));
-            res <= temp(31 downto 0);
+            res <= std_logic_vector(signed(a) and signed(not(b)));
         when "1111" =>
             res <= std_logic_vector(signed(not(b)));
         when others =>

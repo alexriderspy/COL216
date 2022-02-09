@@ -27,6 +27,7 @@ signal res: std_logic_vector(31 downto 0);
 signal cin: std_logic;
 signal cout: std_logic;
 signal temp: std_logic_vector(28 downto 0):= (others => '0');
+signal temp2: std_logic_vector(28 downto 0):= (others => '1');
 
 begin
 
@@ -78,16 +79,16 @@ begin
     b <= temp & "001";
     cin <= '1';
     wait for 1 ns;
-    assert(res <= temp & "110") report "Fail sbc" severity error;
-    assert(cout = '0') report "Fail sbc" severity error;
+    assert(res <= temp & "010") report "Fail sbc" severity error;
+    assert(cout = '1') report "Fail sbc" severity error;
 
 	opcode <= "0111";
     a <= temp & "001";
     b <= temp & "011";
     cin <= '1';
     wait for 1 ns;
-    assert(res <= temp & "110") report "Fail rsc" severity error;
-    assert(cout = '0') report "Fail rsc" severity error;
+    assert(res <= temp & "010") report "Fail rsc" severity error;
+    assert(cout = '1') report "Fail rsc" severity error;
 
 	opcode <= "1000";
     a <= temp & "001";
@@ -130,13 +131,13 @@ begin
     a <= temp & "001";
     b <= temp & "011";
     wait for 1 ns;
-    assert(res <= temp & "100") report "Fail bic" severity error;
+    assert(res <= temp & "000") report "Fail bic" severity error;
 	
     opcode <= "1111";
     a <= temp & "001";
     b <= temp & "011";
     wait for 1 ns;
-    assert(res <= temp & "100") report "Fail mvn" severity error;
+    assert(res <= temp2 & "100") report "Fail mvn" severity error;
     
 	
 	assert false report "Test done." severity note;
