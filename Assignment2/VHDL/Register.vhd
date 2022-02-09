@@ -20,11 +20,9 @@ architecture register_arch of regtr is
     signal reg: table;
 
 begin
-    read : process(rd1,rd2)
-    begin
-        dd1 <= reg(to_integer(unsigned(rd1)));
-        dd2 <= reg(to_integer(unsigned(rd2)));
-    end process read; 
+    dd1 <= reg(to_integer(unsigned(rd1)));
+    dd2 <= reg(to_integer(unsigned(rd2)));
+
 
     write: process(clk)
     begin

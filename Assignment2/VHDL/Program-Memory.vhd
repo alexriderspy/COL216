@@ -11,7 +11,9 @@ entity pm is
 
 architecture pm_arch of pm is
     type table is array(63 downto 0) of std_logic_vector(31 downto 0); --16 - 32 bit vectors
-    signal pmem: table := (others => (others => '0'));
+    
+    signal pmem: table := ("00000000000000000000000000000001",
+ "00000000000000000000000000000010","00000000000000000000000000000011",others => (others => '0'));
 begin
     read : process(rd)
     begin
