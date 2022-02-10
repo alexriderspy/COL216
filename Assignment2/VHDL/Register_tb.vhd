@@ -39,7 +39,7 @@ begin
   
   process
   begin
-    -- Write data into regtr
+    -- Write data into register
     clk<='0';
     wait for 50 ns;
     clk <= '1';
@@ -59,11 +59,11 @@ begin
     wn <= '1';
     
     wait for 50 ns;
-    -- Read data from regtr
+    -- Read data from register
   
     clk <= '0';
     rd1<="1000";
-    
+    wn <= '0';
     
     wait for 50 ns;
     assert(dd1 = (temp & "11")) report "Fail 11" severity error;

@@ -21,9 +21,9 @@ architecture beh_ALU of ALU is
         cout <= cin;
         case opcode is
         when "0000" | "1000" =>
-            res <= std_logic_vector(signed(a) and signed(b));
+            res <= a and b;
         when "0001" | "1001" =>
-            res <= std_logic_vector(signed(a) xor signed(b));
+            res <= a xor b;
         when "0010" | "1010" =>
             temp := std_logic_vector(signed('0' & a) - signed('0' & b));
             cout <= std_logic(temp(32));
@@ -53,13 +53,13 @@ architecture beh_ALU of ALU is
             cout <= std_logic(temp(32));
             res <= temp(31 downto 0);
         when "1100" =>
-            res <= std_logic_vector(signed(a) or signed(b)) ;
+            res <= a or b ;
         when "1101" =>
-            res <= std_logic_vector(signed(b));
+            res <= b;
         when "1110" =>
-            res <= std_logic_vector(signed(a) and signed(not(b)));
+            res <= a and not(b);
         when "1111" =>
-            res <= std_logic_vector(signed(not(b)));
+            res <= not(b);
         when others =>
             NULL;
         end case;

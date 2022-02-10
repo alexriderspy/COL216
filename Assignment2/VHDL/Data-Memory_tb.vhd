@@ -37,6 +37,7 @@ begin
     -- Write data into DM
     clk<='0';
     wait for 50 ns;
+    
     clk <= '1';
     addr<="100000";
     din<=temp & "11";
@@ -44,8 +45,6 @@ begin
     
     wait for 50 ns;
     clk <= '0';
-    addr <= "000000";
-    din<=temp & "01";
     wait for 50 ns;
     
     clk <= '1';
@@ -54,22 +53,37 @@ begin
     wn <= "1111";
     
     wait for 50 ns;
-    -- Read data from DM
+	clk <= '0';
+    wait for 50 ns;
+       
+-- Read data from DM
   
-    clk <= '0';
+    clk <= '1';
     addr<="100000";
-    
+    wn <= "0000";
     
     wait for 50 ns;
     assert(dout = (temp & "11")) report "Fail 11" severity error;
     
-    clk <= '1';
+    clk <= '0';
     addr <= "000000";
     
     wait for 50 ns;
     assert(dout = (temp & "01")) report "Fail 01" severity error;
+
+--Write data
+	clk <= '1';
+    addr <= "000000";
+	din<= temp & "10";
+    wn <= "0001";
+	wait for 50 ns;
     
-    clk <= '0';    
+--read data
+    clk <= '0';
+    addr <= "000000";
+   	wn <= "0000";
+    wait for 50 ns;
+    assert(dout = (temp & "10")) report "Fail wn" severity error;
     
 	assert false report "Tests done." severity note;
 	wait;

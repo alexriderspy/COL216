@@ -26,7 +26,7 @@ begin
   
   process
   begin
-    -- Write data into RAM
+    --Read data from Program Memory
     wait for 100 ns;
     addr<="111111";
     wait for 100 ns;
