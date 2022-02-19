@@ -1,6 +1,7 @@
 LIBRARY IEEE;
 USE IEEE.STD_LOGIC_1164.all;
 USE IEEE.numeric_std.all;
+USE work.MyTypes.ALL;
 
 ENTITY ALU IS 
     PORT (
@@ -54,7 +55,7 @@ architecture beh_ALU of ALU is
             res <= temp(31 downto 0);
         WHEN orr =>
             res <= a or b ;
-        WHEN mvn =>
+        WHEN mov =>
             res <= b;
         WHEN bic =>
             res <= a and not(b);
