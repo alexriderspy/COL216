@@ -21,9 +21,9 @@ BEGIN
     S_ext <= "111111" WHEN (instr(23) = '1') ELSE
         "000000";
 
-    pcout <= STD_LOGIC_VECTOR (signed(pcout) + signed(S_ext & S_offset & "00") + 8) WHEN instr(27 DOWNTO 26) = "10" AND predicate = '1'
-        ELSE
-        STD_LOGIC_VECTOR (signed(pcout) + signed(S_ext & S_offset & "00") + 8) WHEN instr(27 DOWNTO 26) = "10" AND instr(29 DOWNTO 28) = "10"
+    pcout <= STD_LOGIC_VECTOR (signed(pcin) + signed(S_ext & S_offset & "00") + 8) WHEN instr(27 DOWNTO 26) = "10" AND predicate = '1'
+         ELSE
+        STD_LOGIC_VECTOR (signed(pcin) + signed(S_ext & S_offset & "00") + 8) WHEN instr(27 DOWNTO 26) = "10" AND instr(29 DOWNTO 28) = "10"
         ELSE
         STD_LOGIC_VECTOR(signed(pcin) + 4);
 

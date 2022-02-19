@@ -5,7 +5,7 @@ USE work.MyTypes.ALL;
 
 ENTITY Processor IS
     PORT (
-        clk : IN STD_LOGIC);
+        clk,reset : IN STD_LOGIC);
 END ENTITY Processor;
 
 ARCHITECTURE beh_Processor OF Processor IS
@@ -102,7 +102,7 @@ ARCHITECTURE beh_Processor OF Processor IS
     END COMPONENT;
 
     --pc, pm
-    SIGNAL pcin : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    SIGNAL pcin : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL pcout : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL instr : STD_LOGIC_VECTOR(31 DOWNTO 0);
 
@@ -148,42 +148,37 @@ BEGIN
     DUT8 : pc PORT MAP(pcin, instr, pcout, clk, p);
 
     offset <= instr(7 DOWNTO 0);
+    
 
-    PROCESS (clk)
+    rad2 <= instr(3 DOWNTO 0) WHEN instr_class = DP ELSE
+        instr(15 DOWNTO 12);
+
+    mw <= "1111" WHEN instr_class = DT AND load_store = store ELSE
+        "0000";
+
+    alu2 <= (X"000000" & offset) WHEN instr(25) = '1'
+        ELSE
+        rd2;
+
+    SBit <= '1' WHEN instr_class = DP AND op = cmp
+        ELSE
+        '0';
+
+    rw <= '0' WHEN ((instr_class = DP AND op = cmp) OR (instr_class = DT AND load_store = store) OR instr_class = BRN) ELSE
+        '1';
+
+    wd <= res WHEN instr_class = DP ELSE
+
+    rd;
+    PROCESS (clk,reset)
     BEGIN
+        IF (reset = '1') then 
+            pcin <= x"00000000";
+        END IF;
         IF rising_edge(clk) THEN
             pcin <= pcout;
         END IF;
     END PROCESS;
 
-    rad2 <= instr(3 DOWNTO 0) WHEN instr_class = DP ELSE
-        instr(15 DOWNTO 12) WHEN instr_class = DT;
-
-    mw <= "0000" WHEN (instr_class = DP OR instr_class = BRN) ELSE
-        "1111" WHEN instr_class = DT;
-
-    alu2 <= X"000000" & offset WHEN instr_class = DP AND instr(25) = '1'
-        ELSE
-        rd2 WHEN instr_class = DP AND instr(25) = '0';
-
-    SBit <= '0' WHEN instr_class = DP AND (op = add OR op = sub OR op = mov)
-        ELSE
-        '1' WHEN instr_class = DP AND (op = cmp);
-    rw <= '1' WHEN instr_class = DP AND (op = add OR op = sub OR op = mov)
-        ELSE
-        '0' WHEN instr_class = DP AND op = cmp;
-
-    wd <= res WHEN instr_class = DP;
-
-    SBit <= '0' WHEN instr_class = DT;
-    mw <= "0000" WHEN instr_class = DT AND load_store = load
-        ELSE
-        "1111" WHEN instr_class = DT AND load_store = store;
-    rw <= '1' WHEN instr_class = DT AND load_store = load
-        ELSE
-        '0' WHEN instr_class = DT AND load_store = store;
-    wd <= rd WHEN instr_class = DT AND load_store = load;
-
-    SBit <= '0' WHEN instr_class = BRN;
-    rw <= '0' WHEN instr_class = BRN;
-END beh_Processor;
+    END beh_Processor;
+    

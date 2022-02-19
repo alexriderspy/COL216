@@ -1,6 +1,7 @@
 LIBRARY IEEE;
 USE IEEE.std_logic_1164.ALL;
 USE IEEE.numeric_std.ALL;
+USE work.MyTypes.ALL;
 
 ENTITY testbench IS
     -- empty
@@ -12,42 +13,25 @@ ARCHITECTURE tb OF testbench IS
 
     COMPONENT Processor IS
         PORT (
-            clk : IN STD_LOGIC;
-            reset : IN STD_LOGIC
+            clk : IN STD_LOGIC
         );
     END COMPONENT;
 
-    SIGNAL clk : STD_LOGIC := '0';
-    SIGNAL reset : STD_LOGIC := '0';
+	signal clk : std_logic;
+    
 BEGIN
 
-    -- Connect DUT
-    UUT : Processor PORT MAP(clk, reset);
+    UUT : Processor PORT MAP(clk);
 
     PROCESS
     BEGIN
-        -- Write data into register
-        clk <= '0';
-        WAIT FOR 50 ns;
+   -- Write data into register
+    for I in 0 to 20 loop
+	    clk <= '0';
+        wait for 10 ns;
         clk <= '1';
-
-        WAIT FOR 50 ns;
-        clk <= '0';
-        WAIT FOR 50 ns;
-
-        clk <= '1';
-
-        WAIT FOR 50 ns;
-       
-        clk <= '0';
-        
-        WAIT FOR 50 ns;
-
-        clk <= '1';
-
-        WAIT FOR 50 ns;
-
-        clk <= '0';
-        WAIT;
+	    wait for 10 ns;    
+    end loop;        
+    WAIT;
     END PROCESS;
 END tb;
