@@ -133,6 +133,7 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL CF : STD_LOGIC := '0';
     SIGNAL p : STD_LOGIC := '0';
     SIGNAL offset : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL imm : STD_LOGIC_VECTOR(11 DOWNTO 0);
 BEGIN
 
     DUT1 : pm PORT MAP(pcin(7 DOWNTO 2), instr);
@@ -142,13 +143,13 @@ BEGIN
     DUT4 : ALU PORT MAP(rd1, alu2, op, res, '0', cout);
 
     DUT5 : flagupd PORT MAP(rd1(31), alu2(31), cout, res, '0', instr, SBit, clk, ZF, NF, VF, CF);
-    DUT6 : dm PORT MAP(res(7 DOWNTO 2), clk, rd2, rd, mw);
+    DUT6 : dm PORT MAP(res(5 DOWNTO 0), clk, rd2, rd, mw);
 
     DUT7 : cond PORT MAP(instr(31 DOWNTO 28), ZF, VF, CF, NF, p);
     DUT8 : pc PORT MAP(pcin, instr, pcout, clk, p);
 
     offset <= instr(7 DOWNTO 0);
-    
+    imm <= instr(11 downto 0);
 
     rad2 <= instr(3 DOWNTO 0) WHEN instr_class = DP ELSE
         instr(15 DOWNTO 12);
@@ -156,9 +157,9 @@ BEGIN
     mw <= "1111" WHEN instr_class = DT AND load_store = store ELSE
         "0000";
 
-    alu2 <= (X"000000" & offset) WHEN instr(25) = '1'
-        ELSE
-        rd2;
+    alu2 <= (X"000000" & offset) WHEN instr(25) = '1' and instr_class = DP
+        ELSE (X"00000" & imm) when instr_class = DT and instr(25) = '1' 
+        else rd2;
 
     SBit <= '1' WHEN instr_class = DP AND op = cmp
         ELSE
