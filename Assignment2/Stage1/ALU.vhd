@@ -10,7 +10,7 @@ entity ALU is
         res: out std_logic_vector(31 downto 0);
         cin: in std_logic;
         cout: out std_logic);
-end ALU;
+                        end ALU;
 
 architecture beh_ALU of ALU is
     

@@ -1,0 +1,22 @@
+LIBRARY IEEE;
+USE IEEE.std_logic_1164.ALL;
+USE IEEE.numeric_std.ALL;
+
+ENTITY pm IS
+    PORT (
+        rd : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        dd : OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
+    );
+END pm;
+
+ARCHITECTURE pm_arch OF pm IS
+    TYPE table IS ARRAY(63 DOWNTO 0) OF STD_LOGIC_VECTOR(31 DOWNTO 0); --16 - 32 bit vectors
+
+    SIGNAL pmem : table := ("00000000000000000000000000000001",
+    "00000000000000000000000000000010", "00000000000000000000000000000011", OTHERS => (OTHERS => '0'));
+BEGIN
+    read : PROCESS (rd)
+    BEGIN
+        dd <= pmem(to_integer(unsigned(rd)));
+    END PROCESS read;
+END pm_arch;
