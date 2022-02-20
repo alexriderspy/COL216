@@ -5,7 +5,7 @@ USE work.MyTypes.ALL;
 
 ENTITY Processor IS
     PORT (
-        clk,reset : IN STD_LOGIC);
+        clk, reset : IN STD_LOGIC);
 END ENTITY Processor;
 
 ARCHITECTURE beh_Processor OF Processor IS
@@ -124,7 +124,7 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL alu2 : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL res : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL rw : STD_LOGIC := '0';
-    SIGNAL mw : STD_LOGIC_VECTOR := "0000";
+    SIGNAL mw : STD_LOGIC_VECTOR(3 downto 0) := "0000";
     SIGNAL cout : STD_LOGIC;
 
     SIGNAL ZF : STD_LOGIC := '0';
@@ -132,24 +132,28 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL VF : STD_LOGIC := '0';
     SIGNAL CF : STD_LOGIC := '0';
     SIGNAL p : STD_LOGIC := '0';
-    SIGNAL offset : STD_LOGIC_VECTOR(7 DOWNTO 0);
-    SIGNAL imm : STD_LOGIC_VECTOR(11 DOWNTO 0);
+    SIGNAL offset : STD_LOGIC_VECTOR(11 DOWNTO 0);
+    SIGNAL immd : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    signal addr : std_logic_vector(5 downto 0);
+    signal opalu : optype;
 BEGIN
 
     DUT1 : pm PORT MAP(pcin(7 DOWNTO 2), instr);
     DUT2 : Decoder PORT MAP(instr, instr_class, op, DP_subclass, DP_operand_src, load_store, DT_offset_sign);
 
     DUT3 : regtr PORT MAP(instr(19 DOWNTO 16), rad2, clk, wd, instr(15 DOWNTO 12), rw, rd1, rd2);
-    DUT4 : ALU PORT MAP(rd1, alu2, op, res, '0', cout);
+    DUT4 : ALU PORT MAP(rd1, alu2, opalu, res, '0', cout);
 
     DUT5 : flagupd PORT MAP(rd1(31), alu2(31), cout, res, '0', instr, SBit, clk, ZF, NF, VF, CF);
-    DUT6 : dm PORT MAP(res(5 DOWNTO 0), clk, rd2, rd, mw);
+    DUT6 : dm PORT MAP(addr, clk, rd2, rd, mw);
 
     DUT7 : cond PORT MAP(instr(31 DOWNTO 28), ZF, VF, CF, NF, p);
     DUT8 : pc PORT MAP(pcin, instr, pcout, clk, p);
 
-    offset <= instr(7 DOWNTO 0);
-    imm <= instr(11 downto 0);
+    immd <= instr(7 DOWNTO 0);
+    offset <= instr(11 DOWNTO 0);
+
+    addr <= res(7 downto 2);
 
     rad2 <= instr(3 DOWNTO 0) WHEN instr_class = DP ELSE
         instr(15 DOWNTO 12);
@@ -157,9 +161,14 @@ BEGIN
     mw <= "1111" WHEN instr_class = DT AND load_store = store ELSE
         "0000";
 
-    alu2 <= (X"000000" & offset) WHEN instr(25) = '1' and instr_class = DP
-        ELSE (X"00000" & imm) when instr_class = DT and instr(25) = '1' 
-        else rd2;
+    alu2 <= (X"000000" & immd) WHEN DP_operand_src = imm AND instr_class = DP
+        ELSE
+        (X"00000" & offset) WHEN instr_class = DT
+        
+        ELSE
+        rd2;
+
+    opalu <= add when (instr_class = DT and DT_offset_sign = plus) else sub when (instr_class = DT and DT_offset_sign = minus) else op;
 
     SBit <= '1' WHEN instr_class = DP AND op = cmp
         ELSE
@@ -168,12 +177,12 @@ BEGIN
     rw <= '0' WHEN ((instr_class = DP AND op = cmp) OR (instr_class = DT AND load_store = store) OR instr_class = BRN) ELSE
         '1';
 
-    wd <= res WHEN instr_class = DP ELSE
+    wd <= rd WHEN instr_class = DT AND load_store = load ELSE
+        res;
 
-    rd;
-    PROCESS (clk,reset)
+    PROCESS (clk, reset)
     BEGIN
-        IF (reset = '1') then 
+        IF (reset = '1') THEN
             pcin <= x"00000000";
         END IF;
         IF rising_edge(clk) THEN
@@ -181,5 +190,4 @@ BEGIN
         END IF;
     END PROCESS;
 
-    END beh_Processor;
-    
+END beh_Processor;
