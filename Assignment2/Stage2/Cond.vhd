@@ -17,7 +17,7 @@ ARCHITECTURE cond_arch OF cond IS
 BEGIN
 
     WITH condition SELECT
-    predicate <= ZFlag WHEN "0000",
+        predicate <= ZFlag WHEN "0000",
         NOT ZFlag WHEN "0001",
         CFlag WHEN "0010",
         NOT CFlag WHEN "0011",

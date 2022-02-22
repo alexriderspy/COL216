@@ -124,7 +124,7 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL alu2 : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL res : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL rw : STD_LOGIC := '0';
-    SIGNAL mw : STD_LOGIC_VECTOR(3 downto 0) := "0000";
+    SIGNAL mw : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
     SIGNAL cout : STD_LOGIC;
 
     SIGNAL ZF : STD_LOGIC := '0';
@@ -134,8 +134,8 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL p : STD_LOGIC := '0';
     SIGNAL offset : STD_LOGIC_VECTOR(11 DOWNTO 0);
     SIGNAL immd : STD_LOGIC_VECTOR(7 DOWNTO 0);
-    signal addr : std_logic_vector(5 downto 0);
-    signal opalu : optype;
+    SIGNAL addr : STD_LOGIC_VECTOR(5 DOWNTO 0);
+    SIGNAL opalu : optype;
 BEGIN
 
     DUT1 : pm PORT MAP(pcin(7 DOWNTO 2), instr);
@@ -153,7 +153,7 @@ BEGIN
     immd <= instr(7 DOWNTO 0);
     offset <= instr(11 DOWNTO 0);
 
-    addr <= res(7 downto 2);
+    addr <= res(7 DOWNTO 2);
 
     rad2 <= instr(3 DOWNTO 0) WHEN instr_class = DP ELSE
         instr(15 DOWNTO 12);
@@ -164,19 +164,20 @@ BEGIN
     alu2 <= (X"000000" & immd) WHEN DP_operand_src = imm AND instr_class = DP
         ELSE
         (X"00000" & offset) WHEN instr_class = DT
-        
+
         ELSE
         rd2;
 
-    opalu <= add when (instr_class = DT and DT_offset_sign = plus) else sub when (instr_class = DT and DT_offset_sign = minus) else op;
+    opalu <= add WHEN (instr_class = DT AND DT_offset_sign = plus) ELSE
+        sub WHEN (instr_class = DT AND DT_offset_sign = minus) ELSE
+        op;
 
     SBit <= '1' WHEN instr_class = DP AND op = cmp
         ELSE
         '0';
 
-    rw <= '0' WHEN ((instr_class = DP AND op = cmp) OR (instr_class = DT AND load_store = store) OR instr_class = BRN) ELSE
-        '1';
-
+    rw <= '1' when ((instr_class = DP and (op = add or op =  sub  or op = mov)) or (instr_class = DT and load_store = load)) else '0';
+    
     wd <= rd WHEN instr_class = DT AND load_store = load ELSE
         res;
 

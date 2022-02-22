@@ -31,7 +31,7 @@ BEGIN
                     WHEN "001" | "010" | "011" =>
                         IF SBit = '1' THEN
                             IF res = X"00000000" THEN
-                                ZFlag <= '1'; 
+                                ZFlag <= '1';
                             ELSE
                                 ZFlag <= '0';
                             END IF;
@@ -44,14 +44,16 @@ BEGIN
                             IF instr(25) = '0' THEN
                                 IF instr(11 DOWNTO 4) = x"00" THEN
                                     IF res = X"00000000" THEN
-                                        ZFlag <= '1'; ELSE
-                                            ZFlag <= '0';
+                                        ZFlag <= '1';
+                                    ELSE
+                                        ZFlag <= '0';
                                     END IF;
                                     NFlag <= res(31);
                                 ELSE
                                     IF res = X"00000000" THEN
-                                        ZFlag <= '1'; ELSE
-                                            ZFlag <= '0';
+                                        ZFlag <= '1';
+                                    ELSE
+                                        ZFlag <= '0';
                                     END IF;
                                     NFlag <= res(31);
                                     CFlag <= shiftout;
@@ -60,14 +62,16 @@ BEGIN
                             ELSE
                                 IF instr(11 DOWNTO 8) = x"0" THEN
                                     IF res = X"00000000" THEN
-                                        ZFlag <= '1'; ELSE
-                                            ZFlag <= '0';
+                                        ZFlag <= '1';
+                                    ELSE
+                                        ZFlag <= '0';
                                     END IF;
                                     NFlag <= res(31);
                                 ELSE
                                     IF res = X"00000000" THEN
-                                        ZFlag <= '1'; ELSE
-                                            ZFlag <= '0';
+                                        ZFlag <= '1';
+                                    ELSE
+                                        ZFlag <= '0';
                                     END IF;
                                     NFlag <= res(31);
                                     CFlag <= shiftout;
@@ -76,8 +80,9 @@ BEGIN
                         END IF;
                     WHEN "101" => --cmp
                         IF res = X"00000000" THEN
-                            ZFlag <= '1'; ELSE
-                                ZFlag <= '0';
+                            ZFlag <= '1';
+                        ELSE
+                            ZFlag <= '0';
                         END IF;
                         CFlag <= cout;
                         VFlag <= (MSBa AND MSBb AND NOT(res(31))) OR (NOT(MSBa) AND NOT(MSBb) AND res(31));
@@ -89,14 +94,16 @@ BEGIN
                             IF instr(25) = '0' THEN
                                 IF instr(11 DOWNTO 4) = x"00" THEN
                                     IF res = X"00000000" THEN
-                                        ZFlag <= '1'; ELSE
-                                            ZFlag <= '0';
+                                        ZFlag <= '1';
+                                    ELSE
+                                        ZFlag <= '0';
                                     END IF;
                                     NFlag <= res(31);
                                 ELSE
                                     IF res = X"00000000" THEN
-                                        ZFlag <= '1'; ELSE
-                                            ZFlag <= '0';
+                                        ZFlag <= '1';
+                                    ELSE
+                                        ZFlag <= '0';
                                     END IF;
                                     NFlag <= res(31);
                                     CFlag <= shiftout;
@@ -105,14 +112,16 @@ BEGIN
                             ELSE
                                 IF instr(11 DOWNTO 8) = x"0" THEN
                                     IF res = X"00000000" THEN
-                                        ZFlag <= '1'; ELSE
-                                            ZFlag <= '0';
+                                        ZFlag <= '1';
+                                    ELSE
+                                        ZFlag <= '0';
                                     END IF;
                                     NFlag <= res(31);
                                 ELSE
                                     IF res = X"00000000" THEN
-                                        ZFlag <= '1'; ELSE
-                                            ZFlag <= '0';
+                                        ZFlag <= '1';
+                                    ELSE
+                                        ZFlag <= '0';
                                     END IF;
                                     NFlag <= res(31);
                                     CFlag <= shiftout;
@@ -120,8 +129,9 @@ BEGIN
                             END IF;
                         ELSE
                             IF res = X"00000000" THEN
-                                ZFlag <= '1'; ELSE
-                                    ZFlag <= '0';
+                                ZFlag <= '1';
+                            ELSE
+                                ZFlag <= '0';
                             END IF;
                             NFlag <= res(31);
                         END IF;

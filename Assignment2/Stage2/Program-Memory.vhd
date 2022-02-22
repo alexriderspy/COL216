@@ -17,9 +17,9 @@ ARCHITECTURE pm_arch OF pm IS
     2 => X"EA000000",
     3 => X"E3A00004",
     4 => X"E2400001",
-    others => X"00000000"
+    OTHERS => X"00000000"
     );
-    
-	BEGIN
-        dd <= pmem(to_integer(unsigned(rd)));
-	END pm_arch;
+
+BEGIN
+    dd <= pmem(to_integer(unsigned(rd)));
+END pm_arch;
