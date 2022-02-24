@@ -143,16 +143,17 @@ ARCHITECTURE beh_Processor OF Processor IS
 
     SIGNAL curr : FSM_states := st1;
     SIGNAL nex : FSM_states;
-
+    
+    SIGNAL wdmem: std_logic_vector(31 downto 0);
 BEGIN
 
-    DUT1 : mem PORT MAP(addr, clk, rd2, rd, mw);
+    DUT1 : mem PORT MAP(addr, clk,wdmem, rd, mw);
     DUT2 : Decoder PORT MAP(IR, instr_class, op, DP_subclass, DP_operand_src, load_store, DT_offset_sign);
 
-    DUT3 : regtr PORT MAP(IR(19 DOWNTO 16), rad2, clk, wd, IR(15 DOWNTO 12), rw, rd1, rd2);
+    DUT3 : regtr PORT MAP(IR(19 downto 16), rad2, clk, wd, IR(15 downto 12), rw, rd1, rd2);
     DUT4 : ALU PORT MAP(opd1, opd2, opalu, result, cin, cout);
 
-    DUT5 : flagupd PORT MAP(rd1(31), alu2(31), cout, result, '0', IR, SBit, clk, ZF, NF, VF, CF);
+    DUT5 : flagupd PORT MAP(opd1(31), opd2(31), cout, result, '0', IR, SBit, clk, ZF, NF, VF, CF);
 
     DUT7 : cond PORT MAP(IR(31 DOWNTO 28), ZF, VF, CF, NF, p);
     DUT8 : pc PORT MAP(pcin, IR, pcout, clk, p, write_en);
@@ -163,20 +164,37 @@ BEGIN
     addr <= STD_LOGIC_VECTOR(unsigned(pcin(8 DOWNTO 2)) + 64) WHEN curr = st1 ELSE
         RES(8 DOWNTO 2);
 
-    rad2 <= IR(3 DOWNTO 0) WHEN curr = st2 ELSE
+    IR <= rd when curr = st1;
+
+    DR <= rd when curr = st4c;
+
+    wdmem <= B when curr = st4b;
+
+	rad2 <= IR(3 DOWNTO 0) WHEN curr = st2 ELSE
         IR(15 DOWNTO 12);
 
-    alu2 <= (X"000000" & immd) WHEN DP_operand_src = imm AND instr_class = DP
-        ELSE
-        (X"00000" & offset) WHEN instr_class = DT
-        ELSE
-        B;
+    opd1 <= pcout when curr = st3c else
+        A;
 
-    opalu <= add WHEN (instr_class = DT AND DT_offset_sign = plus) ELSE
-        sub WHEN (instr_class = DT AND DT_offset_sign = minus) ELSE
+    opd2 <= (X"000000" & immd) WHEN (curr = st3a and DP_operand_src = imm)
+        ELSE
+        (X"00000" & offset) WHEN (curr = st3b)
+        ELSE
+        B when (curr = st3a and DP_operand_src = reg);
+
+    A <= rd1 when curr = st2;
+    B <= rd2 when curr = st2;
+
+    RES <= result when curr = st3a or curr = st3b;
+
+    opalu <= add WHEN (curr = st3b and DT_offset_sign = plus) ELSE
+        sub WHEN (curr = st3b and DT_offset_sign = minus) ELSE
+        adc when (curr = st3c) else
         op;
 
-    wd <= DR WHEN instr_class = DT AND load_store = load ELSE
+    cin <= '1' when opalu = adc else '0';
+
+    wd <= DR WHEN curr = st5 ELSE
         RES;
 
     PROCESS (clk, reset)
@@ -191,12 +209,9 @@ BEGIN
                     rw <= '0';
                     SBit <= '0';
                     mw <= "0000"; --mem read
-                    IR <= rd; --store in register - IR 
                     nex <= st2; --update state
                 WHEN st2 =>
                     write_en <= '0';
-                    A <= rd1;
-                    B <= rd2;
                     SBit <= '0';
                     rw <= '0';
                     mw <= "0000";
@@ -210,27 +225,18 @@ BEGIN
                 WHEN st3a =>
                     rw <= '0';
                     mw <= "0000";
-                    opd1 <= A;
-                    opd2 <= alu2;
-                    cin <= '0';
-                    --check
-
                     write_en <= '0';
                     IF op = cmp THEN
                         SBit <= '1';
                     ELSE
                         SBit <= '0';
                     END IF;
-                    RES <= result;
+                    
                     nex <= st4a;
                 WHEN st3b =>
                     rw <= '0';
                     mw <= "0000";
                     write_en <= '0';
-                    opd1 <= A;
-                    opd2 <= alu2;
-                    cin <= '0';
-                    B <= rd2;
                     SBit <= '0';
                     IF load_store = store THEN
                         nex <= st4b;
@@ -240,7 +246,6 @@ BEGIN
                 WHEN st3c =>
                     --branch
                     SBit <= '0';
-
                     nex <= st1;
                     pcin <= pcout;
                 WHEN st4a => --last stage for DP
@@ -265,7 +270,6 @@ BEGIN
                 WHEN st4c => --load
                     rw <= '0';
                     SBit <= '0';
-                    DR <= rd;
                     mw <= "0000";
                     write_en <= '0';
                     nex <= st5;
