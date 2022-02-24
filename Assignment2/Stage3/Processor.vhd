@@ -5,23 +5,11 @@ USE work.MyTypes.ALL;
 
 ENTITY Processor IS
     PORT (
-        clk, reset : IN STD_LOGIC;
-        state : OUT FSM_states:=st1
+        clk, reset : IN STD_LOGIC
     );
 END ENTITY Processor;
 
 ARCHITECTURE beh_Processor OF Processor IS
-
-    COMPONENT pc IS
-        PORT (
-            pcin : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
-            instr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
-            pcout : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
-            clk : IN STD_LOGIC;
-            predicate : IN STD_LOGIC;
-            write_en : IN STD_LOGIC
-        );
-    END COMPONENT;
 
     COMPONENT Decoder IS
         PORT (
@@ -99,7 +87,6 @@ ARCHITECTURE beh_Processor OF Processor IS
 
     SIGNAL pcin : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL pcout : STD_LOGIC_VECTOR(31 DOWNTO 0);
-    SIGNAL write_en : STD_LOGIC := '0';
 
     SIGNAL instr_class : instr_class_type;
     SIGNAL op : optype;
@@ -116,6 +103,7 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL rd : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL rd2 : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL alu2 : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL alu1 : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL result : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL rw : STD_LOGIC := '0';
     SIGNAL mw : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
@@ -141,150 +129,119 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL DR : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL RES : STD_LOGIC_VECTOR(31 DOWNTO 0);
 
-    SIGNAL curr : FSM_states := st1;
-    SIGNAL nex : FSM_states;
-    
-    SIGNAL wdmem: std_logic_vector(31 downto 0);
+    SIGNAL curr : INTEGER;
+
+    SIGNAL S_ext : STD_LOGIC_VECTOR (7 DOWNTO 0);
+    SIGNAL S_offset : STD_LOGIC_VECTOR (23 DOWNTO 0);
+
 BEGIN
 
-    DUT1 : mem PORT MAP(addr, clk,wdmem, rd, mw);
-    DUT2 : Decoder PORT MAP(IR, instr_class, op, DP_subclass, DP_operand_src, load_store, DT_offset_sign);
+    DUT1 : Decoder PORT MAP(IR, instr_class, op, DP_subclass, DP_operand_src, load_store, DT_offset_sign);
 
-    DUT3 : regtr PORT MAP(IR(19 downto 16), rad2, clk, wd, IR(15 downto 12), rw, rd1, rd2);
-    DUT4 : ALU PORT MAP(opd1, opd2, opalu, result, cin, cout);
+    DUT2 : regtr PORT MAP(IR(19 DOWNTO 16), rad2, clk, wd, IR(15 DOWNTO 12), rw, rd1, rd2);
+    DUT3 : ALU PORT MAP(alu1, alu2, opalu, result, cin, cout);
 
-    DUT5 : flagupd PORT MAP(opd1(31), opd2(31), cout, result, '0', IR, SBit, clk, ZF, NF, VF, CF);
+    DUT4 : flagupd PORT MAP(rd1(31), alu2(31), cout, RES, '0', IR, SBit, clk, ZF, NF, VF, CF);
+    DUT5 : mem PORT MAP(addr, clk, rd2, rd, mw);
 
-    DUT7 : cond PORT MAP(IR(31 DOWNTO 28), ZF, VF, CF, NF, p);
-    DUT8 : pc PORT MAP(pcin, IR, pcout, clk, p, write_en);
+    DUT6 : cond PORT MAP(IR(31 DOWNTO 28), ZF, VF, CF, NF, p);
 
     immd <= IR(7 DOWNTO 0);
     offset <= IR(11 DOWNTO 0);
 
-    addr <= STD_LOGIC_VECTOR(unsigned(pcin(8 DOWNTO 2)) + 64) WHEN curr = st1 ELSE
+    addr <= STD_LOGIC_VECTOR(unsigned(pcin(8 DOWNTO 2)) + 64) WHEN curr = 0 ELSE
         RES(8 DOWNTO 2);
 
-    IR <= rd when curr = st1;
-
-    DR <= rd when curr = st4c;
-
-    wdmem <= B when curr = st4b;
-
-	rad2 <= IR(3 DOWNTO 0) WHEN curr = st2 ELSE
+    rad2 <= IR(3 DOWNTO 0) WHEN instr_class = DP ELSE
         IR(15 DOWNTO 12);
 
-    opd1 <= pcout when curr = st3c else
+    mw <= "1111" WHEN curr = 41 ELSE
+        "0000";
+
+    alu1 <= ("00" & pcout(31 DOWNTO 2)) WHEN curr = 32 ELSE
         A;
 
-    opd2 <= (X"000000" & immd) WHEN (curr = st3a and DP_operand_src = imm)
-        ELSE
-        (X"00000" & offset) WHEN (curr = st3b)
-        ELSE
-        B when (curr = st3a and DP_operand_src = reg);
+    alu2 <= (X"000000" & immd) WHEN DP_operand_src = imm AND curr = 30 ELSE
+        (X"00000" & offset) WHEN curr = 31 ELSE
+        (S_ext & S_offset) WHEN curr = 32 AND p = '1' ELSE
+        B;
 
-    A <= rd1 when curr = st2;
-    B <= rd2 when curr = st2;
+    S_offset <= IR (23 DOWNTO 0);
+    S_ext <= "11111111" WHEN (IR(23) = '1') ELSE
+        "00000000";
 
-    RES <= result when curr = st3a or curr = st3b;
-
-    opalu <= add WHEN (curr = st3b and DT_offset_sign = plus) ELSE
-        sub WHEN (curr = st3b and DT_offset_sign = minus) ELSE
-        adc when (curr = st3c) else
+    opalu <= add WHEN (curr = 31 AND DT_offset_sign = plus) ELSE
+        sub WHEN (curr = 31 AND DT_offset_sign = minus) ELSE
+        adc WHEN curr = 32 ELSE
         op;
 
-    cin <= '1' when opalu = adc else '0';
+    cin <= '1' WHEN curr = 32 ELSE
+        '0';
 
-    wd <= DR WHEN curr = st5 ELSE
-        RES;
+    SBit <= '1' WHEN curr = 30 AND op = cmp
+        ELSE
+        '0';
+
+    rw <= '1' WHEN (curr = 5 OR (curr = 40 AND (op = mov OR op = add OR op = sub))) ELSE
+        '0';
+
+    wd <= rd WHEN curr = 5 ELSE
+        res;
 
     PROCESS (clk, reset)
     BEGIN
         IF (reset = '1') THEN
             pcin <= x"00000000";
+            curr <= 0;
         END IF;
         IF rising_edge(clk) THEN
             CASE curr IS
-                WHEN st1 =>
-                    write_en <= '1'; --pc= pc+4
-                    rw <= '0';
-                    SBit <= '0';
-                    mw <= "0000"; --mem read
-                    nex <= st2; --update state
-                WHEN st2 =>
-                    write_en <= '0';
-                    SBit <= '0';
-                    rw <= '0';
-                    mw <= "0000";
+                WHEN 0 =>
+                    IR <= rd;
+                    pcout <= STD_LOGIC_VECTOR(unsigned(pcin) + 4);
+                    curr <= 1;
+                WHEN 1 =>
+                    A <= rd1;
+                    B <= rd2;
                     IF instr_class = DP THEN
-                        nex <= st3a;
+                        curr <= 30;
                     ELSIF instr_class = DT THEN
-                        nex <= st3b;
+                        curr <= 31;
                     ELSE
-                        nex <= st3c;
+                        curr <= 32;
                     END IF;
-                WHEN st3a =>
-                    rw <= '0';
-                    mw <= "0000";
-                    write_en <= '0';
-                    IF op = cmp THEN
-                        SBit <= '1';
-                    ELSE
-                        SBit <= '0';
-                    END IF;
-                    
-                    nex <= st4a;
-                WHEN st3b =>
-                    rw <= '0';
-                    mw <= "0000";
-                    write_en <= '0';
-                    SBit <= '0';
+                WHEN 30 =>
+                    RES <= result;
+                    curr <= 40;
+                WHEN 31 =>
+                    RES <= result;
                     IF load_store = store THEN
-                        nex <= st4b;
+                        curr <= 41;
                     ELSE
-                        nex <= st4c;
+                        curr <= 42;
                     END IF;
-                WHEN st3c =>
-                    --branch
-                    SBit <= '0';
-                    nex <= st1;
-                    pcin <= pcout;
-                WHEN st4a => --last stage for DP
-                    SBit <= '0';
-                    mw <= "0000";
-                    write_en <= '0';
-                    IF op = cmp THEN
-                        rw <= '0';
+                WHEN 32 =>
+                    curr <= 0;
+                    IF p = '1' THEN
+                        pcin <= (result(29 DOWNTO 0) & "00");
                     ELSE
-                        rw <= '1';
+                        pcin <= pcout;
                     END IF;
-                    nex <= st1;
+                WHEN 40 =>
+                    curr <= 0;
                     pcin <= pcout;
-                WHEN st4b => --store
-                    SBit <= '0';
-
-                    mw <= "1111";
-                    write_en <= '0';
-                    rw <= '0';
-                    nex <= st1;
+                WHEN 41 =>
+                    curr <= 0;
                     pcin <= pcout;
-                WHEN st4c => --load
-                    rw <= '0';
-                    SBit <= '0';
-                    mw <= "0000";
-                    write_en <= '0';
-                    nex <= st5;
-                WHEN st5 =>
-                    rw <= '1';
-                    SBit <= '0';
-                    mw <= "0000";
-                    write_en <= '0';
-                    nex <= st1;
+                WHEN 42 =>
+                    DR <= rd;
+                    curr <= 5;
+                WHEN 5 =>
+                    curr <= 0;
                     pcin <= pcout;
                 WHEN OTHERS =>
                     NULL;
             END CASE;
-            state<=nex;
-            curr <= nex;
         END IF;
     END PROCESS;
 END beh_Processor;

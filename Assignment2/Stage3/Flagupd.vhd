@@ -25,7 +25,7 @@ ARCHITECTURE flag_arch OF flagupd IS
 BEGIN
     PROCESS (clk)
     BEGIN
-        IF (clk = '1') THEN
+        IF (rising_edge(clk)) THEN
             IF instr(27 DOWNTO 26) = "00" THEN
                 CASE instr(24 DOWNTO 22) IS
                     WHEN "001" | "010" | "011" =>

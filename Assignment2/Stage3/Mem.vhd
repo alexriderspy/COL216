@@ -14,16 +14,19 @@ END mem;
 
 ARCHITECTURE mem_arch OF mem IS
     TYPE table IS ARRAY(127 DOWNTO 0) OF STD_LOGIC_VECTOR(31 DOWNTO 0); --16 - 32 bit addresses
-    SIGNAL dmem : table := (64 => X"E3A00001",
-    65 => X"E2800002",
-    OTHERS => X"00000000"
+    SIGNAL dmem : table := (64 => X"E3A00005",
+    65 => X"E2400001",
+    66 => X"EA000000",
+    67 => X"E3A00003",
+    68 => X"E2400001",
+    others => X"00000000"
     );
 BEGIN
     dout <= dmem(to_integer(unsigned(addr)));
 
     PROCESS (clk)
     BEGIN
-        IF (clk='1') THEN
+        IF (rising_edge(clk)) THEN
             IF wn(3) = '1' THEN
                 dmem(to_integer(unsigned(addr)))(31 DOWNTO 24) <= din(31 DOWNTO 24);
             END IF;
