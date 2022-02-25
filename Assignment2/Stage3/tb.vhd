@@ -15,7 +15,6 @@ ARCHITECTURE tb OF testbench IS
     END COMPONENT;
 
     SIGNAL clk, reset : STD_LOGIC;
-   -- SIGNal state : FSM_states;
 
 BEGIN
 
@@ -27,7 +26,7 @@ BEGIN
         WAIT FOR 10 ns;
         reset <= '0';
 
-        FOR I IN 0 TO 40 LOOP
+        FOR I IN 0 TO 80 LOOP
             clk <= '0';
             WAIT FOR 10 ns;
             clk <= '1';

@@ -10,9 +10,9 @@ ARCHITECTURE tb OF testbench IS
 
     -- DUT component
 
-    COMPONENT dm IS
+    COMPONENT mem IS
         PORT (
-            addr : IN STD_LOGIC_VECTOR(5 DOWNTO 0);
+            addr : IN STD_LOGIC_VECTOR(6 DOWNTO 0);
             clk : IN STD_LOGIC;
             din : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
             dout : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -20,17 +20,18 @@ ARCHITECTURE tb OF testbench IS
         );
     END COMPONENT;
 
-    SIGNAL addr : STD_LOGIC_VECTOR(5 DOWNTO 0);
+    SIGNAL addr : STD_LOGIC_VECTOR(6 DOWNTO 0);
     SIGNAL clk : STD_LOGIC;
     SIGNAL din : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL dout : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL wn : STD_LOGIC_VECTOR(3 DOWNTO 0);
     SIGNAL temp : STD_LOGIC_VECTOR(29 DOWNTO 0) := (OTHERS => '0');
+    SIGNAL val : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"E3A01005";
 
 BEGIN
 
     -- Connect DUT
-    UUT : dm PORT MAP(addr, clk, din, dout, wn);
+    UUT : mem PORT MAP(addr, clk, din, dout, wn);
 
     PROCESS
     BEGIN
@@ -39,7 +40,7 @@ BEGIN
         WAIT FOR 50 ns;
 
         clk <= '1';
-        addr <= "100000";
+        addr <= "0100000";
         din <= temp & "11";
         wn <= "1111";
 
@@ -48,7 +49,7 @@ BEGIN
         WAIT FOR 50 ns;
 
         clk <= '1';
-        addr <= "000000";
+        addr <= "0000000";
         din <= temp & "01";
         wn <= "1111";
 
@@ -59,32 +60,37 @@ BEGIN
         -- Read data from DM
 
         clk <= '1';
-        addr <= "100000";
+        addr <= "0100000";
         wn <= "0000";
 
         WAIT FOR 50 ns;
         ASSERT(dout = (temp & "11")) REPORT "Fail 11" SEVERITY error;
 
         clk <= '0';
-        addr <= "000000";
+        addr <= "0000000";
 
         WAIT FOR 50 ns;
         ASSERT(dout = (temp & "01")) REPORT "Fail 01" SEVERITY error;
 
         --Write data
         clk <= '1';
-        addr <= "000000";
+        addr <= "0000000";
         din <= temp & "10";
         wn <= "0001";
         WAIT FOR 50 ns;
 
         --read data
         clk <= '0';
-        addr <= "000000";
+        addr <= "0000000";
         wn <= "0000";
         WAIT FOR 50 ns;
         ASSERT(dout = (temp & "10")) REPORT "Fail wn" SEVERITY error;
 
+        clk <= '1';
+        addr <= "1000000";
+        wn <= "0000";
+        WAIT FOR 50 ns;
+        ASSERT(dout <= (val)) REPORT "fail pm" SEVERITY error;
         ASSERT false REPORT "Tests done." SEVERITY note;
         WAIT;
     END PROCESS;

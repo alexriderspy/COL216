@@ -109,8 +109,6 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL mw : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
     SIGNAL cout : STD_LOGIC;
 
-    SIGNAL opd1 : STD_LOGIC_VECTOR(31 DOWNTO 0);
-    SIGNAL opd2 : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL cin : STD_LOGIC;
 
     SIGNAL ZF : STD_LOGIC := '0';
@@ -158,12 +156,16 @@ BEGIN
     mw <= "1111" WHEN curr = 41 ELSE
         "0000";
 
-    alu1 <= ("00" & pcout(31 DOWNTO 2)) WHEN curr = 32 ELSE
+    alu1 <= ("00" & pcout(31 DOWNTO 2)) WHEN curr = 32
+        ELSE
+        pcin WHEN curr = 0 ELSE
+
         A;
 
     alu2 <= (X"000000" & immd) WHEN DP_operand_src = imm AND curr = 30 ELSE
         (X"00000" & offset) WHEN curr = 31 ELSE
         (S_ext & S_offset) WHEN curr = 32 AND p = '1' ELSE
+        (X"0000000" & "0100") WHEN curr = 0 ELSE
         B;
 
     S_offset <= IR (23 DOWNTO 0);
@@ -172,6 +174,8 @@ BEGIN
 
     opalu <= add WHEN (curr = 31 AND DT_offset_sign = plus) ELSE
         sub WHEN (curr = 31 AND DT_offset_sign = minus) ELSE
+        add WHEN curr = 0 ELSE
+
         adc WHEN curr = 32 ELSE
         op;
 
@@ -193,12 +197,13 @@ BEGIN
         IF (reset = '1') THEN
             pcin <= x"00000000";
             curr <= 0;
-        END IF;
-        IF rising_edge(clk) THEN
+        
+        
+        ELSIF rising_edge(clk) THEN
             CASE curr IS
                 WHEN 0 =>
                     IR <= rd;
-                    pcout <= STD_LOGIC_VECTOR(unsigned(pcin) + 4);
+                    pcout <= result;
                     curr <= 1;
                 WHEN 1 =>
                     A <= rd1;
