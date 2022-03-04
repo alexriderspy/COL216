@@ -175,18 +175,18 @@ BEGIN
     opalu <= add WHEN (curr = 31 AND DT_offset_sign = plus) ELSE
         sub WHEN (curr = 31 AND DT_offset_sign = minus) ELSE
         add WHEN curr = 0 ELSE
-
         adc WHEN curr = 32 ELSE
         op;
 
     cin <= '1' WHEN curr = 32 ELSE
+        CF WHEN (curr = 30 AND (op = adc OR op = sbc OR op = rsc)) ELSE
         '0';
 
-    SBit <= '1' WHEN curr = 30 AND op = cmp
+    SBit <= '1' WHEN (curr = 30 AND (op = cmp OR op = tst OR op = cmn OR op = teq))
         ELSE
         '0';
 
-    rw <= '1' WHEN (curr = 5 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op=rsb or op=add or op=adc or op = sbc or op = rsc or op=orr or op = mov or op = bic or op = mvn))) ELSE
+    rw <= '1' WHEN (curr = 5 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op = rsb OR op = add OR op = adc OR op = sbc OR op = rsc OR op = orr OR op = mov OR op = bic OR op = mvn))) ELSE
         '0';
 
     wd <= rd WHEN curr = 5 ELSE
@@ -197,8 +197,6 @@ BEGIN
         IF (reset = '1') THEN
             pcin <= x"00000000";
             curr <= 0;
-        
-        
         ELSIF rising_edge(clk) THEN
             CASE curr IS
                 WHEN 0 =>
