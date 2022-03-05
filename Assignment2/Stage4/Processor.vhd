@@ -66,6 +66,7 @@ ARCHITECTURE beh_Processor OF Processor IS
             res : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
             shiftout : IN STD_LOGIC;
             instr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+            DP_subclass : IN DP_subclass_type;
             SBit : IN STD_LOGIC;
             clk : IN STD_LOGIC;
             ZFlag : OUT STD_LOGIC;
@@ -139,7 +140,7 @@ BEGIN
     DUT2 : regtr PORT MAP(IR(19 DOWNTO 16), rad2, clk, wd, IR(15 DOWNTO 12), rw, rd1, rd2);
     DUT3 : ALU PORT MAP(alu1, alu2, opalu, result, cin, cout);
 
-    DUT4 : flagupd PORT MAP(rd1(31), alu2(31), cout, RES, '0', IR, SBit, clk, ZF, NF, VF, CF);
+    DUT4 : flagupd PORT MAP(rd1(31), alu2(31), cout, RES, '0', IR, DP_subclass, SBit, clk, ZF, NF, VF, CF);
     DUT5 : mem PORT MAP(addr, clk, rd2, rd, mw);
 
     DUT6 : cond PORT MAP(IR(31 DOWNTO 28), ZF, VF, CF, NF, p);

@@ -11,6 +11,7 @@ ENTITY flagupd IS
         res : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
         shiftout : IN STD_LOGIC;
         instr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        DP_subclass : IN DP_subclass_type;
         SBit : IN STD_LOGIC;
         clk : IN STD_LOGIC;
         ZFlag : OUT STD_LOGIC := '0';
@@ -23,121 +24,9 @@ END flagupd;
 ARCHITECTURE flag_arch OF flagupd IS
 
 BEGIN
-    PROCESS (clk)
-    BEGIN
-        IF (rising_edge(clk)) THEN
-            IF instr(27 DOWNTO 26) = "00" THEN
-                CASE instr(24 DOWNTO 22) IS
-                    WHEN "001" | "010" | "011" =>
-                        IF SBit = '1' THEN
-                            IF res = X"00000000" THEN
-                                ZFlag <= '1';
-                            ELSE
-                                ZFlag <= '0';
-                            END IF;
-                            CFlag <= cout;
-                            VFlag <= (MSBa AND MSBb AND NOT(res(31))) OR (NOT(MSBa) AND NOT(MSBb) AND res(31));
-                            NFlag <= res(31);
-                        END IF;
-                    WHEN "000" | "110" | "111" =>
-                        IF SBit = '1' THEN
-                            IF instr(25) = '0' THEN
-                                IF instr(11 DOWNTO 4) = x"00" THEN
-                                    IF res = X"00000000" THEN
-                                        ZFlag <= '1';
-                                    ELSE
-                                        ZFlag <= '0';
-                                    END IF;
-                                    NFlag <= res(31);
-                                ELSE
-                                    IF res = X"00000000" THEN
-                                        ZFlag <= '1';
-                                    ELSE
-                                        ZFlag <= '0';
-                                    END IF;
-                                    NFlag <= res(31);
-                                    CFlag <= shiftout;
-                                END IF;
-
-                            ELSE
-                                IF instr(11 DOWNTO 8) = x"0" THEN
-                                    IF res = X"00000000" THEN
-                                        ZFlag <= '1';
-                                    ELSE
-                                        ZFlag <= '0';
-                                    END IF;
-                                    NFlag <= res(31);
-                                ELSE
-                                    IF res = X"00000000" THEN
-                                        ZFlag <= '1';
-                                    ELSE
-                                        ZFlag <= '0';
-                                    END IF;
-                                    NFlag <= res(31);
-                                    CFlag <= shiftout;
-                                END IF;
-                            END IF;
-                        END IF;
-                    WHEN "101" => --cmp
-                        IF res = X"00000000" THEN
-                            ZFlag <= '1';
-                        ELSE
-                            ZFlag <= '0';
-                        END IF;
-                        CFlag <= cout;
-                        VFlag <= (MSBa AND MSBb AND NOT(res(31))) OR (NOT(MSBa) AND NOT(MSBb) AND res(31));
-
-                        NFlag <= res(31);
-
-                    WHEN OTHERS =>
-                        IF SBit = '1' THEN
-                            IF instr(25) = '0' THEN
-                                IF instr(11 DOWNTO 4) = x"00" THEN
-                                    IF res = X"00000000" THEN
-                                        ZFlag <= '1';
-                                    ELSE
-                                        ZFlag <= '0';
-                                    END IF;
-                                    NFlag <= res(31);
-                                ELSE
-                                    IF res = X"00000000" THEN
-                                        ZFlag <= '1';
-                                    ELSE
-                                        ZFlag <= '0';
-                                    END IF;
-                                    NFlag <= res(31);
-                                    CFlag <= shiftout;
-                                END IF;
-
-                            ELSE
-                                IF instr(11 DOWNTO 8) = x"0" THEN
-                                    IF res = X"00000000" THEN
-                                        ZFlag <= '1';
-                                    ELSE
-                                        ZFlag <= '0';
-                                    END IF;
-                                    NFlag <= res(31);
-                                ELSE
-                                    IF res = X"00000000" THEN
-                                        ZFlag <= '1';
-                                    ELSE
-                                        ZFlag <= '0';
-                                    END IF;
-                                    NFlag <= res(31);
-                                    CFlag <= shiftout;
-                                END IF;
-                            END IF;
-                        ELSE
-                            IF res = X"00000000" THEN
-                                ZFlag <= '1';
-                            ELSE
-                                ZFlag <= '0';
-                            END IF;
-                            NFlag <= res(31);
-                        END IF;
-
-                END CASE;
-            END IF;
-        END IF;
-    END PROCESS;
+    CFlag <= cout when ((DP_subclass = arith and SBit='1') or DP_subclass = comp);
+    ZFlag <= '1' when (((DP_subclass = arith and SBit = '1') or (DP_subclass = logic and SBit = '1') or (DP_subclass = comp) or (DP_subclass = test)) and (res=X"00000000"))
+        else '0' when (((DP_subclass = arith and SBit = '1') or (DP_subclass = logic and SBit = '1') or (DP_subclass = comp) or (DP_subclass = test)));
+    NFlag <= res(31) when ((DP_subclass = arith and SBit = '1') or (DP_subclass = logic and SBit = '1') or (DP_subclass = comp) or (DP_subclass = test));
+    VFlag <= (MSBa AND MSBb AND NOT(res(31))) OR (NOT(MSBa) AND NOT(MSBb) AND res(31)) when ((DP_subclass = arith and SBit = '1') or (DP_subclass = comp));
 END flag_arch;
