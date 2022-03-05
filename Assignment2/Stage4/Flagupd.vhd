@@ -31,4 +31,5 @@ BEGIN
         '0' WHEN (rising_edge(clk) and instr_class= DP and ((DP_subclass = arith AND SBit = '1') OR (DP_subclass = logic AND SBit = '1') OR (DP_subclass = comp) OR (DP_subclass = test)));
     NFlag <= res(31) WHEN (rising_edge(clk) and instr_class= DP and ((DP_subclass = arith AND SBit = '1') OR (DP_subclass = logic AND SBit = '1') OR (DP_subclass = comp) OR (DP_subclass = test)));
     VFlag <= (MSBa AND MSBb AND NOT(res(31))) OR (NOT(MSBa) AND NOT(MSBb) AND res(31)) WHEN (rising_edge(clk) and instr_class= DP and ((DP_subclass = arith AND SBit = '1') OR (DP_subclass = comp)));
+    
 END flag_arch;
