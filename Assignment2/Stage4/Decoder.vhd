@@ -28,7 +28,7 @@ BEGIN
         BRN WHEN "10",
         none WHEN OTHERS;
 
-    operation <= invalid when instruction = X"00000000" else oparray (to_integer(unsigned (instruction (24 DOWNTO 21)))) when not (instruction) = 0 else invalid ;
+    operation <= invalid when instruction = X"00000000" else oparray (to_integer(unsigned (instruction (24 DOWNTO 21))));
     WITH instruction (24 DOWNTO 22) SELECT
     DP_subclass <= arith WHEN "001" | "010" | "011",
         logic WHEN "000" | "110" | "111",

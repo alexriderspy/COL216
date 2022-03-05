@@ -1,8 +1,8 @@
 .text
-mov r0,#5
-Loop0: sub r0,r0,#1
-b Loop1
-mov r0,#9
-Loop1: sub r0,r0,#1
+    mov r0, #-1
+    mov r1, #1
+    cmp r0,r1
+    adc r3,r0,r1 @r3 = 1
+@    sbc r4,r3,#8 @r4 = 3
+@    rsc r5,r4,r3 @r5 = 8
 .end
-
