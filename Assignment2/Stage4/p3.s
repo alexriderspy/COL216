@@ -3,6 +3,6 @@
     mov r1, #1
     cmp r0,r1
     adc r3,r0,r1 @r3 = 1
-@    sbc r4,r3,#8 @r4 = 3
-@    rsc r5,r4,r3 @r5 = 8
+    sbc r4,r3,#8 @r4 = 3
+    rsc r5,r4,r3 @r5 = 8
 .end

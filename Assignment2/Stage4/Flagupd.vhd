@@ -11,22 +11,24 @@ ENTITY flagupd IS
         res : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
         shiftout : IN STD_LOGIC;
         instr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        instr_class : IN instr_class_type;
         DP_subclass : IN DP_subclass_type;
         SBit : IN STD_LOGIC;
         clk : IN STD_LOGIC;
-        ZFlag : OUT STD_LOGIC := '0';
-        NFlag : OUT STD_LOGIC := '0';
-        VFlag : OUT STD_LOGIC := '0';
-        CFlag : OUT STD_LOGIC := '0'
+        ZFlag : OUT STD_LOGIC:='0';
+        NFlag : OUT STD_LOGIC:='0';
+        VFlag : OUT STD_LOGIC:='0';
+        CFlag : OUT STD_LOGIC:='0'
     );
 END flagupd;
 
 ARCHITECTURE flag_arch OF flagupd IS
 
 BEGIN
-    CFlag <= cout when ((DP_subclass = arith and SBit='1') or DP_subclass = comp);
-    ZFlag <= '1' when (((DP_subclass = arith and SBit = '1') or (DP_subclass = logic and SBit = '1') or (DP_subclass = comp) or (DP_subclass = test)) and (res=X"00000000"))
-        else '0' when (((DP_subclass = arith and SBit = '1') or (DP_subclass = logic and SBit = '1') or (DP_subclass = comp) or (DP_subclass = test)));
-    NFlag <= res(31) when ((DP_subclass = arith and SBit = '1') or (DP_subclass = logic and SBit = '1') or (DP_subclass = comp) or (DP_subclass = test));
-    VFlag <= (MSBa AND MSBb AND NOT(res(31))) OR (NOT(MSBa) AND NOT(MSBb) AND res(31)) when ((DP_subclass = arith and SBit = '1') or (DP_subclass = comp));
+    
+    CFlag <= cout WHEN (rising_edge(clk) and instr_class= DP and ((DP_subclass = arith AND SBit = '1') OR DP_subclass = comp));
+    ZFlag <= '1' WHEN (rising_edge(clk) and instr_class= DP and (((DP_subclass = arith AND SBit = '1') OR (DP_subclass = logic AND SBit = '1') OR (DP_subclass = comp) OR (DP_subclass = test)) AND (res = X"00000000"))) ELSE
+        '0' WHEN (rising_edge(clk) and instr_class= DP and ((DP_subclass = arith AND SBit = '1') OR (DP_subclass = logic AND SBit = '1') OR (DP_subclass = comp) OR (DP_subclass = test)));
+    NFlag <= res(31) WHEN (rising_edge(clk) and instr_class= DP and ((DP_subclass = arith AND SBit = '1') OR (DP_subclass = logic AND SBit = '1') OR (DP_subclass = comp) OR (DP_subclass = test)));
+    VFlag <= (MSBa AND MSBb AND NOT(res(31))) OR (NOT(MSBa) AND NOT(MSBb) AND res(31)) WHEN (rising_edge(clk) and instr_class= DP and ((DP_subclass = arith AND SBit = '1') OR (DP_subclass = comp)));
 END flag_arch;

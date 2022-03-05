@@ -19,6 +19,8 @@ ARCHITECTURE mem_arch OF mem IS
     65 => X"E3A01001",
     66 => X"E1500001",
     67 => X"E0A03001",
+    68 => X"E2C34008",
+    69 => X"E0E45003",
     others => X"00000000"
     );
     
