@@ -66,7 +66,6 @@ ARCHITECTURE beh_Processor OF Processor IS
             res : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
             shiftout : IN STD_LOGIC;
             instr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
-            instr_class : IN instr_class_type;
             DP_subclass : IN DP_subclass_type;
             SBit : IN STD_LOGIC;
             clk : IN STD_LOGIC;
@@ -99,6 +98,7 @@ ARCHITECTURE beh_Processor OF Processor IS
 
     SIGNAL rad2 : STD_LOGIC_VECTOR(3 DOWNTO 0);
 
+    SIGNAL SBit : STD_LOGIC := '0';
     SIGNAL wd : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL rd1 : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL rd : STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -109,7 +109,7 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL rw : STD_LOGIC := '0';
     SIGNAL mw : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
     SIGNAL cout : STD_LOGIC;
-    SIGNAL SBit : STD_LOGIC;
+
     SIGNAL cin : STD_LOGIC;
 
     SIGNAL ZF : STD_LOGIC := '0';
@@ -144,7 +144,7 @@ BEGIN
     DUT2 : regtr PORT MAP(IR(19 DOWNTO 16), rad2, clk, wd, IR(15 DOWNTO 12), rw, rd1, rd2);
     DUT3 : ALU PORT MAP(alu1, alu2, opalu, result, cin, cout);
 
-    DUT4 : flagupd PORT MAP(alu1(31), alu2(31), cout, RES, '0', IR, instr_class, DP_subclass, IR(20), clk, ZF, NF, VF, CF);
+    DUT4 : flagupd PORT MAP(rd1(31), alu2(31), cout, RES, '0', IR, DP_subclass, IR(20), clk, ZF, NF, VF, CF);
     DUT5 : mem PORT MAP(addr, clk, rd2, rd, mw);
 
     DUT6 : cond PORT MAP(IR(31 DOWNTO 28), ZFlag, VFlag, CFlag, NFlag, p);
@@ -163,7 +163,6 @@ BEGIN
 
     alu1 <= ("00" & pcout(31 DOWNTO 2)) WHEN curr = 32 ELSE
         pcin WHEN curr = 0 ELSE
-
         A;
 
     alu2 <= (X"000000" & immd) WHEN DP_operand_src = imm AND curr = 30 ELSE
@@ -215,18 +214,6 @@ BEGIN
                     END IF;
                 WHEN 30 =>
                     RES <= result;
-                    if (instr_class= DP and (((DP_subclass = arith AND SBit = '1') OR (DP_subclass = logic AND SBit = '1') OR (DP_subclass = comp) OR (DP_subclass = test)) )) then
-                    ZFlag <= ZF;
-                    end if;
-                    if (instr_class= DP and ((DP_subclass = arith AND SBit = '1') OR (DP_subclass = logic AND SBit = '1') OR (DP_subclass = comp) OR (DP_subclass = test))) then
-                    NFlag <= NF;
-                    end if;
-                    if  (instr_class= DP and ((DP_subclass = arith AND SBit = '1') OR (DP_subclass = comp))) then
-                    VFlag <= VF;
-                    end if;
-                    if (instr_class= DP and ((DP_subclass = arith AND SBit = '1') OR (DP_subclass = comp))) then
-                    CFlag <= CF;
-                    end if;
                     curr <= 40;
                 WHEN 31 =>
                     RES <= result;
@@ -244,6 +231,12 @@ BEGIN
                     END IF;
                 WHEN 40 =>
                     curr <= 0;
+                    IF IR(20) = '1' THEN
+                        ZFlag <= ZF;
+                        CFlag <= CF;
+                        NFlag <= NF;
+                        VFlag <= VF;
+                    END IF;
                     pcin <= pcout;
                 WHEN 41 =>
                     curr <= 0;
