@@ -99,17 +99,19 @@ ARCHITECTURE beh_Processor OF Processor IS
 
     SIGNAL rad2 : STD_LOGIC_VECTOR(3 DOWNTO 0);
 
-    SIGNAL SBit : STD_LOGIC := '0';
     SIGNAL wd : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL rd1 : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL rd1x : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL rd : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL rd2 : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL alu2 : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL alu2x : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL alu1 : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL result : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL rw : STD_LOGIC := '0';
     SIGNAL mw : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
     SIGNAL cout : STD_LOGIC;
+    SIGNAL coutx : STD_LOGIC;
 
     SIGNAL cin : STD_LOGIC;
 
@@ -141,7 +143,7 @@ BEGIN
     DUT2 : regtr PORT MAP(IR(19 DOWNTO 16), rad2, clk, wd, IR(15 DOWNTO 12), rw, rd1, rd2);
     DUT3 : ALU PORT MAP(alu1, alu2, opalu, result, cin, cout);
 
-    DUT4 : flagupd PORT MAP(rd1(31), alu2(31), coutx, RES, '0', IR, instr_class,DP_subclass, SBit, clk, ZF, NF, VF, CF);
+    DUT4 : flagupd PORT MAP(rd1x(31), alu2x(31), coutx, RES, '0', IR, instr_class, DP_subclass, IR(20), clk, ZF, NF, VF, CF);
     DUT5 : mem PORT MAP(addr, clk, rd2, rd, mw);
 
     DUT6 : cond PORT MAP(IR(31 DOWNTO 28), ZF, VF, CF, NF, p);
@@ -149,8 +151,10 @@ BEGIN
     immd <= IR(7 DOWNTO 0);
     offset <= IR(11 DOWNTO 0);
 
-    coutx <= cout when curr = 30;
-    
+    coutx <= cout WHEN curr = 30;
+    rd1x <= rd1 WHEN curr = 30;
+    alu2x <= alu2 WHEN curr = 30;
+
     addr <= STD_LOGIC_VECTOR(unsigned(pcin(8 DOWNTO 2)) + 64) WHEN curr = 0 ELSE
         RES(8 DOWNTO 2);
 
@@ -160,8 +164,7 @@ BEGIN
     mw <= "1111" WHEN curr = 41 ELSE
         "0000";
 
-    alu1 <= ("00" & pcout(31 DOWNTO 2)) WHEN curr = 32
-        ELSE
+    alu1 <= ("00" & pcout(31 DOWNTO 2)) WHEN curr = 32 ELSE
         pcin WHEN curr = 0 ELSE
 
         A;
@@ -184,10 +187,6 @@ BEGIN
 
     cin <= '1' WHEN curr = 32 ELSE
         CF WHEN (curr = 30 AND (op = adc OR op = sbc OR op = rsc)) ELSE
-        '0';
-
-    SBit <= '1' WHEN (curr = 30 AND (op = cmp OR op = tst OR op = cmn OR op = teq))
-        ELSE
         '0';
 
     rw <= '1' WHEN (curr = 5 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op = rsb OR op = add OR op = adc OR op = sbc OR op = rsc OR op = orr OR op = mov OR op = bic OR op = mvn))) ELSE

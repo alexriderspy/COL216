@@ -26,12 +26,12 @@ architecture beh_ALU of ALU is
         WHEN eor | teq =>
             res <= a xor b;
         WHEN sub | cmp =>
-            temp := STD_LOGIC_VECTOR(signed('0' & a) + signed('0' & b) + 1);
+            temp := STD_LOGIC_VECTOR(signed('0' & a) + (signed('0' & not(b))) + 1);
             cout <= STD_LOGIC(temp(32));
             
             res <= temp(31 downto 0);
         WHEN rsb =>
-            temp := STD_LOGIC_VECTOR(signed('0' & b) + signed('0' & a) + 1);
+            temp := STD_LOGIC_VECTOR((signed('0' & b)) + (signed('0' & not(a))) + 1);
             cout <= STD_LOGIC(temp(32));
             
             res <= temp(31 downto 0);
