@@ -158,7 +158,7 @@ BEGIN
     DUT3 : ALU PORT MAP(alu1, alu2, opalu, result, cin, cout);
 
     DUT4 : flagupd PORT MAP(rd1(31), alu2(31), cout, result, '0', IR, DP_subclass, IR(20), ZF, NF, VF, CF);
-    DUT5 : mem PORT MAP(addr, clk, rd2, rd, mw);
+    DUT5 : mem PORT MAP(addr, clk, B, rd, mw);
 
     DUT6 : cond PORT MAP(IR(31 DOWNTO 28), ZFlag, VFlag, CFlag, NFlag, p);
 
@@ -174,16 +174,15 @@ BEGIN
         IR(11 downto 4);
 
     shift_data <=(X"000000" & immd) WHEN curr = 23 ELSE
-        rd2 when curr = 24 else 
-    B;
+        B;
 
     addr <= STD_LOGIC_VECTOR(unsigned(pcin(8 DOWNTO 2)) + 64) WHEN curr = 0 ELSE
         RES(8 DOWNTO 2);
 
-    rad2 <= IR(3 DOWNTO 0) WHEN curr = 1 or curr = 24 ELSE
+    rad2 <= IR(3 DOWNTO 0) WHEN (curr = 1) ELSE
 
         IR(11 DOWNTO 8) WHEN curr = 21 ELSE
-        
+
         IR(15 DOWNTO 12);
 
     mw <= "1111" WHEN curr = 41 ELSE
@@ -194,7 +193,7 @@ BEGIN
         A;
 
     alu2 <= (S_ext & S_offset) WHEN curr = 32 AND p = '1' ELSE
-        oupt when curr = 
+        
         B;
 
     S_offset <= IR (23 DOWNTO 0);
@@ -263,8 +262,8 @@ BEGIN
                 WHEN 23 =>
                     B <= oupt;
                     curr <= 30;
-                when 24 => 
-                    B <= oupt;
+                when 24 =>
+                    C <= oupt;
                     curr <= 31;
                 when 25 =>
                     B <= (X"00000" & offset); --no shift/rotate
