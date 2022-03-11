@@ -18,8 +18,11 @@ ARCHITECTURE beh_Processor OF Processor IS
             operation : OUT optype;
             DP_subclass : OUT DP_subclass_type;
             DP_operand_src : OUT DP_operand_src_type;
+            DT_operand_src : OUT DP_operand_src_type;
             load_store : OUT load_store_type;
-            DT_offset_sign : OUT DT_offset_sign_type
+            DT_offset_sign : OUT DT_offset_sign_type;
+            shift_operand_src : OUT DP_operand_src_type;
+            shift_typ : OUT shift_type
         );
     END COMPONENT;
 
@@ -68,7 +71,6 @@ ARCHITECTURE beh_Processor OF Processor IS
             instr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
             DP_subclass : IN DP_subclass_type;
             SBit : IN STD_LOGIC;
-            clk : IN STD_LOGIC;
             ZFlag : OUT STD_LOGIC;
             NFlag : OUT STD_LOGIC;
             VFlag : OUT STD_LOGIC;
@@ -83,6 +85,17 @@ ARCHITECTURE beh_Processor OF Processor IS
             din : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
             dout : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
             wn : IN STD_LOGIC_VECTOR(3 DOWNTO 0)
+        );
+    END COMPONENT;
+
+    COMPONENT Sh_ror IS
+        PORT (
+            inp : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+            amt : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
+            typ : IN shift_type;
+            carry_in : IN STD_LOGIC;
+            oupt : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+            carry_out : OUT STD_LOGIC
         );
     END COMPONENT;
 
@@ -139,23 +152,38 @@ ARCHITECTURE beh_Processor OF Processor IS
 
 BEGIN
 
-    DUT1 : Decoder PORT MAP(IR, instr_class, op, DP_subclass, DP_operand_src, load_store, DT_offset_sign);
+    DUT1 : Decoder PORT MAP(IR, instr_class, op, DP_subclass, DP_operand_src,DT_operand_src, load_store, DT_offset_sign, shift_operand_src, shift_typ);
 
     DUT2 : regtr PORT MAP(IR(19 DOWNTO 16), rad2, clk, wd, IR(15 DOWNTO 12), rw, rd1, rd2);
     DUT3 : ALU PORT MAP(alu1, alu2, opalu, result, cin, cout);
 
-    DUT4 : flagupd PORT MAP(rd1(31), alu2(31), cout, RES, '0', IR, DP_subclass, IR(20), clk, ZF, NF, VF, CF);
+    DUT4 : flagupd PORT MAP(rd1(31), alu2(31), cout, result, '0', IR, DP_subclass, IR(20), ZF, NF, VF, CF);
     DUT5 : mem PORT MAP(addr, clk, rd2, rd, mw);
 
     DUT6 : cond PORT MAP(IR(31 DOWNTO 28), ZFlag, VFlag, CFlag, NFlag, p);
 
+    DUT7 : Sh_ror PORT MAP(shift_data, shift_amt, shift_typ, CFlag, oupt, cout_s);
+    --cout_s is carry_out from shifter
+
     immd <= IR(7 DOWNTO 0);
     offset <= IR(11 DOWNTO 0);
+
+    shift_amt <= IR(11 DOWNTO 7) WHEN curr = 20 ELSE
+        C WHEN curr = 22 ELSE
+        2 * IR(11 DOWNTO 8) WHEN curr = 23 else
+        IR(11 downto 4);
+
+    shift_data <=(X"000000" & immd) WHEN curr = 23 ELSE
+        rd2 when curr = 24 else 
+    B;
 
     addr <= STD_LOGIC_VECTOR(unsigned(pcin(8 DOWNTO 2)) + 64) WHEN curr = 0 ELSE
         RES(8 DOWNTO 2);
 
-    rad2 <= IR(3 DOWNTO 0) WHEN instr_class = DP ELSE
+    rad2 <= IR(3 DOWNTO 0) WHEN curr = 1 or curr = 24 ELSE
+
+        IR(11 DOWNTO 8) WHEN curr = 21 ELSE
+        
         IR(15 DOWNTO 12);
 
     mw <= "1111" WHEN curr = 41 ELSE
@@ -165,10 +193,8 @@ BEGIN
         pcin WHEN curr = 0 ELSE
         A;
 
-    alu2 <= (X"000000" & immd) WHEN DP_operand_src = imm AND curr = 30 ELSE
-        (X"00000" & offset) WHEN curr = 31 ELSE
-        (S_ext & S_offset) WHEN curr = 32 AND p = '1' ELSE
-        (X"0000000" & "0100") WHEN curr = 0 ELSE
+    alu2 <= (S_ext & S_offset) WHEN curr = 32 AND p = '1' ELSE
+        oupt when curr = 
         B;
 
     S_offset <= IR (23 DOWNTO 0);
@@ -189,7 +215,7 @@ BEGIN
         '0';
 
     wd <= rd WHEN curr = 5 ELSE
-        res;
+        RES;
 
     PROCESS (clk, reset)
     BEGIN
@@ -206,17 +232,53 @@ BEGIN
                     A <= rd1;
                     B <= rd2;
                     IF instr_class = DP THEN
-                        curr <= 30;
+                        IF DP_operand_src = reg THEN
+                            IF shift_operand_src = imm THEN
+                                curr <= 20;
+                            ELSE
+                                curr <= 21;
+                            END IF;
+                        ELSE
+                            curr <= 23; --imm
+                        END IF;
                     ELSIF instr_class = DT THEN
-                        curr <= 31;
+                        IF DT_operand_src = reg THEN
+                            --only constant so no branching here
+                            curr <= 24;
+                        ELSE
+                            curr <= 25;
+                        END IF;
                     ELSE
                         curr <= 32;
                     END IF;
+                WHEN 20 =>
+                    curr <= 30;
+                    B <= oupt;
+                WHEN 21 =>
+                    C <= rd2;
+                    curr <= 22;
+                WHEN 22 =>
+                    B <= oupt;
+                    curr <= 30;
+                WHEN 23 =>
+                    B <= oupt;
+                    curr <= 30;
+                when 24 => 
+                    B <= oupt;
+                    curr <= 31;
+                when 25 =>
+                    B <= (X"00000" & offset); --no shift/rotate
+                    curr <= 31;
                 WHEN 30 =>
                     RES <= result;
                     curr <= 40;
+                    ZFlag <= ZF;
+                    CFlag <= CF;
+                    NFlag <= NF;
+                    VFlag <= VF;
                 WHEN 31 =>
                     RES <= result;
+                    B <= rd2;
                     IF load_store = store THEN
                         curr <= 41;
                     ELSE
@@ -231,12 +293,6 @@ BEGIN
                     END IF;
                 WHEN 40 =>
                     curr <= 0;
-                    IF IR(20) = '1' THEN
-                        ZFlag <= ZF;
-                        CFlag <= CF;
-                        NFlag <= NF;
-                        VFlag <= VF;
-                    END IF;
                     pcin <= pcout;
                 WHEN 41 =>
                     curr <= 0;

@@ -10,10 +10,11 @@ ENTITY Decoder IS
         operation : OUT optype;
         DP_subclass : OUT DP_subclass_type;
         DP_operand_src : OUT DP_operand_src_type;
+        DT_operand_src : OUT DP_operand_src_type;
         load_store : OUT load_store_type;
         DT_offset_sign : OUT DT_offset_sign_type;
         
-        shift_operand_src : OUT shift_operand_src_type;
+        shift_operand_src : OUT DP_operand_src_type;
         shift_typ : OUT shift_type
     );
 END Decoder;

@@ -9,7 +9,7 @@ ENTITY Sh_ror IS
         amt : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
         typ : IN shift_type;
         carry_in : IN STD_LOGIC;
-        oupt : OUT STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+        oupt : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
         carry_out : OUT STD_LOGIC
     );
 END Sh_ror;

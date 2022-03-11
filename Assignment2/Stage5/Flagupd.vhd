@@ -13,7 +13,6 @@ ENTITY flagupd IS
         instr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
         DP_subclass : IN DP_subclass_type;
         SBit : IN STD_LOGIC;
-        clk : IN STD_LOGIC;
         ZFlag : OUT STD_LOGIC := '0';
         NFlag : OUT STD_LOGIC := '0';
         VFlag : OUT STD_LOGIC := '0';
