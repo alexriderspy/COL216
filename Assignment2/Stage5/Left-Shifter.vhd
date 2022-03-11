@@ -24,19 +24,19 @@ BEGIN
 
     out0 <= inp (30 DOWNTO 0) & '0' WHEN amt(0) = '1' ELSE
         inp(31 DOWNTO 0);
-    out1 <= inp(29 DOWNTO 0) & "00" WHEN amt(1) = '1' ELSE
+    out1 <= out0(29 DOWNTO 0) & "00" WHEN amt(1) = '1' ELSE
         out0;
-    out2 <= inp (27 DOWNTO 0) & "0000" WHEN amt(2) = '1' ELSE
+    out2 <= out1 (27 DOWNTO 0) & X"0" WHEN amt(2) = '1' ELSE
         out1;
-    out3 <= inp(23 DOWNTO 0) & "00000000" WHEN amt(3) = '1' ELSE
+    out3 <= out2(23 DOWNTO 0) & X"00" WHEN amt(3) = '1' ELSE
         out2;
-    out4 <= inp(15 DOWNTO 0) & X"0000" WHEN amt(4) = '1' ELSE
+    oupt <= out3(15 DOWNTO 0) & X"0000" WHEN amt(4) = '1' ELSE
         out3;
-    carry_out <= inp(16) WHEN amt(4) = '1' ELSE
-        inp(24) WHEN amt(3) = '1' ELSE
-        inp(28) WHEN amt(2) = '1' ELSE
-        inp(30) WHEN amt(1) = '1' ELSE
-        inp(31) WHEN amt(0) = '1' ELSE
+    carry_out <= oupt(16) WHEN amt(4) = '1' ELSE
+        out3(24) WHEN amt(3) = '1' ELSE
+        out2(28) WHEN amt(2) = '1' ELSE
+        out1(30) WHEN amt(1) = '1' ELSE
+        out0(31) WHEN amt(0) = '1' ELSE
         carry_in;
 
 END beh_Left_Shifter;
