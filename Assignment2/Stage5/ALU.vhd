@@ -62,7 +62,7 @@ architecture beh_ALU of ALU is
         WHEN mvn =>
             res <= not(b);
         WHEN others =>
-            NULL;
+            res <= X"00000000";
         end case;
         end process;
     end beh_ALU;

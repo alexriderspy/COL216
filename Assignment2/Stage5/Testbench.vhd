@@ -22,14 +22,14 @@ BEGIN
     PROCESS
     BEGIN
         reset <= '1';
-        WAIT FOR 10 ns;
+        WAIT FOR 1 ns;
         reset <= '0';
 
         FOR I IN 0 TO 80 LOOP
             clk <= '0';
-            WAIT FOR 10 ns;
+            WAIT FOR 1 ns;
             clk <= '1';
-            WAIT FOR 10 ns;
+            WAIT FOR 1 ns;
         END LOOP;
         WAIT;
     END PROCESS;

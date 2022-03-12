@@ -123,7 +123,7 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL mw : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
     SIGNAL cout : STD_LOGIC;
 
-    SIGNAL cin : STD_LOGIC;
+    SIGNAL cin : STD_LOGIC := '0';
 
     SIGNAL ZF : STD_LOGIC := '0';
     SIGNAL NF : STD_LOGIC := '0';
@@ -150,9 +150,18 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL S_ext : STD_LOGIC_VECTOR (7 DOWNTO 0);
     SIGNAL S_offset : STD_LOGIC_VECTOR (23 DOWNTO 0);
 
+    SIGNAL C : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL shift_data : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL shift_amt : STD_LOGIC_VECTOR(4 DOWNTO 0);
+    SIGNAL shift_typ : shift_type;
+    SIGNAL shift_ty : shift_type;
+    SIGNAL DT_operand_src : DP_operand_src_type;
+    SIGNAL shift_operand_src : DP_operand_src_type;
+    SIGNAL oupt : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL cout_s : STD_LOGIC;
 BEGIN
 
-    DUT1 : Decoder PORT MAP(IR, instr_class, op, DP_subclass, DP_operand_src,DT_operand_src, load_store, DT_offset_sign, shift_operand_src, shift_typ);
+    DUT1 : Decoder PORT MAP(IR, instr_class, op, DP_subclass, DP_operand_src, DT_operand_src, load_store, DT_offset_sign, shift_operand_src, shift_typ);
 
     DUT2 : regtr PORT MAP(IR(19 DOWNTO 16), rad2, clk, wd, IR(15 DOWNTO 12), rw, rd1, rd2);
     DUT3 : ALU PORT MAP(alu1, alu2, opalu, result, cin, cout);
@@ -162,27 +171,27 @@ BEGIN
 
     DUT6 : cond PORT MAP(IR(31 DOWNTO 28), ZFlag, VFlag, CFlag, NFlag, p);
 
-    DUT7 : Sh_ror PORT MAP(shift_data, shift_amt, shift_typ, CFlag, oupt, cout_s);
+    DUT7 : Sh_ror PORT MAP(shift_data, shift_amt, shift_ty, CFlag, oupt, cout_s);
     --cout_s is carry_out from shifter
 
     immd <= IR(7 DOWNTO 0);
     offset <= IR(11 DOWNTO 0);
 
-    shift_amt <= IR(11 DOWNTO 7) WHEN curr = 20 ELSE
-        C WHEN curr = 22 ELSE
-        2 * IR(11 DOWNTO 8) WHEN curr = 23 else
-        IR(11 downto 4);
+    shift_amt <= C(4 DOWNTO 0) WHEN curr = 22 ELSE
+        IR(11 DOWNTO 8) & '0' WHEN curr = 23 ELSE
+        IR(11 DOWNTO 7);
 
-    shift_data <=(X"000000" & immd) WHEN curr = 23 ELSE
+    shift_data <= (X"000000" & immd) WHEN curr = 23 ELSE
         B;
+
+    shift_ty <= RORx WHEN curr = 23 ELSE
+        shift_typ;
 
     addr <= STD_LOGIC_VECTOR(unsigned(pcin(8 DOWNTO 2)) + 64) WHEN curr = 0 ELSE
         RES(8 DOWNTO 2);
 
     rad2 <= IR(3 DOWNTO 0) WHEN (curr = 1) ELSE
-
         IR(11 DOWNTO 8) WHEN curr = 21 ELSE
-
         IR(15 DOWNTO 12);
 
     mw <= "1111" WHEN curr = 41 ELSE
@@ -193,7 +202,8 @@ BEGIN
         A;
 
     alu2 <= (S_ext & S_offset) WHEN curr = 32 AND p = '1' ELSE
-        
+        (X"0000000" & "0100") WHEN curr = 0 ELSE
+        C WHEN curr = 31 ELSE
         B;
 
     S_offset <= IR (23 DOWNTO 0);
@@ -262,19 +272,21 @@ BEGIN
                 WHEN 23 =>
                     B <= oupt;
                     curr <= 30;
-                when 24 =>
+                WHEN 24 =>
                     C <= oupt;
                     curr <= 31;
-                when 25 =>
-                    B <= (X"00000" & offset); --no shift/rotate
+                WHEN 25 =>
+                    C <= (X"00000" & offset); --no shift/rotate
                     curr <= 31;
                 WHEN 30 =>
                     RES <= result;
                     curr <= 40;
-                    ZFlag <= ZF;
-                    CFlag <= CF;
-                    NFlag <= NF;
-                    VFlag <= VF;
+                    IF IR(20) = '1' THEN
+                        ZFlag <= ZF;
+                        CFlag <= CF;
+                        NFlag <= NF;
+                        VFlag <= VF;
+                    END IF;
                 WHEN 31 =>
                     RES <= result;
                     B <= rd2;

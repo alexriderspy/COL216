@@ -13,7 +13,7 @@ ENTITY Decoder IS
         DT_operand_src : OUT DP_operand_src_type;
         load_store : OUT load_store_type;
         DT_offset_sign : OUT DT_offset_sign_type;
-        
+
         shift_operand_src : OUT DP_operand_src_type;
         shift_typ : OUT shift_type
     );
@@ -41,6 +41,8 @@ BEGIN
         test WHEN OTHERS;
     DP_operand_src <= reg WHEN instruction (25) = '0' ELSE
         imm;
+    DT_operand_src <= reg WHEN instruction (25) = '1' ELSE
+        imm;
     load_store <= load WHEN instruction (20) = '1' ELSE
         store;
     DT_offset_sign <= plus WHEN instruction (23) = '1' ELSE
@@ -48,7 +50,8 @@ BEGIN
     shift_typ <= LSL WHEN instruction(6 DOWNTO 5) = "00" ELSE
         LSR WHEN instruction(6 DOWNTO 5) = "01" ELSE
         ASR WHEN instruction(6 DOWNTO 5) = "10" ELSE
-        ROR;
-    shift_operand_src <= reg when instruction(4) = '1' else 
-    imm;
+        RORx;
+    shift_operand_src <= reg WHEN instruction(4) = '1' ELSE
+        imm;
+
 END Decoder_arch;

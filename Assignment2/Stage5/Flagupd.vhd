@@ -23,9 +23,9 @@ END flagupd;
 ARCHITECTURE flag_arch OF flagupd IS
 
 BEGIN
-    CFlag <= cout when ((DP_subclass = arith and SBit='1') or DP_subclass = comp);
+    CFlag <= cout when ((DP_subclass = arith and SBit='1') or DP_subclass = comp) else '0';
     ZFlag <= '1' when (((DP_subclass = arith and SBit = '1') or (DP_subclass = logic and SBit = '1') or (DP_subclass = comp) or (DP_subclass = test)) and (res=X"00000000"))
-        else '0' when (((DP_subclass = arith and SBit = '1') or (DP_subclass = logic and SBit = '1') or (DP_subclass = comp) or (DP_subclass = test)));
-    NFlag <= res(31) when ((DP_subclass = arith and SBit = '1') or (DP_subclass = logic and SBit = '1') or (DP_subclass = comp) or (DP_subclass = test));
-    VFlag <= (MSBa AND MSBb AND NOT(res(31))) OR (NOT(MSBa) AND NOT(MSBb) AND res(31)) when ((DP_subclass = arith and SBit = '1') or (DP_subclass = comp));
+        else '0' when (((DP_subclass = arith and SBit = '1') or (DP_subclass = logic and SBit = '1') or (DP_subclass = comp) or (DP_subclass = test))) else '0';
+    NFlag <= res(31) when ((DP_subclass = arith and SBit = '1') or (DP_subclass = logic and SBit = '1') or (DP_subclass = comp) or (DP_subclass = test)) else '0';
+    VFlag <= (MSBa AND MSBb AND NOT(res(31))) OR (NOT(MSBa) AND NOT(MSBb) AND res(31)) when ((DP_subclass = arith and SBit = '1') or (DP_subclass = comp)) else '0';
 END flag_arch;

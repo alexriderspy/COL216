@@ -1,6 +1,6 @@
 .text
-    mov r0, #10
-    mov r1, #11
-    and r3,r0,r1
-    eor r4,r3,#8
+    mov r0, #1
+    mov r1,#2
+    mov r2,r0,LSL #3
+    add r3,r2,r1
 .end

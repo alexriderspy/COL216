@@ -19,6 +19,7 @@ ARCHITECTURE beh_Left_Shifter OF Left_Shifter IS
     SIGNAL out1 : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL out2 : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL out3 : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL out4 : STD_LOGIC_VECTOR(31 DOWNTO 0);
 
 BEGIN
 
@@ -30,9 +31,10 @@ BEGIN
         out1;
     out3 <= out2(23 DOWNTO 0) & X"00" WHEN amt(3) = '1' ELSE
         out2;
-    oupt <= out3(15 DOWNTO 0) & X"0000" WHEN amt(4) = '1' ELSE
+    out4 <= out3(15 DOWNTO 0) & X"0000" WHEN amt(4) = '1' ELSE
         out3;
-    carry_out <= oupt(16) WHEN amt(4) = '1' ELSE
+    oupt <= out4;
+    carry_out <= out4(16) WHEN amt(4) = '1' ELSE
         out3(24) WHEN amt(3) = '1' ELSE
         out2(28) WHEN amt(2) = '1' ELSE
         out1(30) WHEN amt(1) = '1' ELSE

@@ -1,6 +1,6 @@
 .text
-mov r0,#10
-mov r1,#7
-orr r2,r1,r0
-bic r3,r2,#0
+	mov r0,#1
+	mov r2,#8
+	str r0,[r2,#500]
+    ldr r0,[r2,#500]
 .end
