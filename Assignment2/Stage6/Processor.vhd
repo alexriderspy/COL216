@@ -159,6 +159,10 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL shift_operand_src : DP_operand_src_type;
     SIGNAL oupt : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL cout_s : STD_LOGIC;
+
+    SIGNAL W : STD_LOGIC;
+    SIGNAL P : STD_LOGIC;
+
 BEGIN
 
     DUT1 : Decoder PORT MAP(IR, instr_class, op, DP_subclass, DP_operand_src, DT_operand_src, load_store, DT_offset_sign, shift_operand_src, shift_typ);
@@ -177,6 +181,9 @@ BEGIN
     immd <= IR(7 DOWNTO 0);
     offset <= IR(11 DOWNTO 0);
 
+    W <= IR(21);
+    P <= IR(24);
+
     shift_amt <= C(4 DOWNTO 0) WHEN curr = 22 ELSE
         IR(11 DOWNTO 8) & '0' WHEN curr = 23 ELSE
         IR(11 DOWNTO 7);
@@ -188,6 +195,7 @@ BEGIN
         shift_typ;
 
     addr <= STD_LOGIC_VECTOR(unsigned(pcin(8 DOWNTO 2)) + 64) WHEN curr = 0 ELSE
+        A(8 DOWNTO 2) WHEN P = '0' ELSE --post-index 
         RES(8 DOWNTO 2);
 
     rad2 <= IR(3 DOWNTO 0) WHEN (curr = 1) ELSE
@@ -220,7 +228,7 @@ BEGIN
         CFlag WHEN (curr = 30 AND (op = adc OR op = sbc OR op = rsc)) ELSE
         '0';
 
-    rw <= '1' WHEN (curr = 5 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op = rsb OR op = add OR op = adc OR op = sbc OR op = rsc OR op = orr OR op = mov OR op = bic OR op = mvn))) ELSE
+    rw <= '1' WHEN (curr = 5 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op = rsb OR op = add OR op = adc OR op = sbc OR op = rsc OR op = orr OR op = mov OR op = bic OR op = mvn)) OR ((curr = 42) AND (W = '1' OR P = '0')) OR ((curr = 41) AND (W = '1' OR P = '0'))) ELSE
         '0';
 
     wd <= rd WHEN curr = 5 ELSE
