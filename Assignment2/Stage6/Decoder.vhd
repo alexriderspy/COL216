@@ -14,6 +14,9 @@ ENTITY Decoder IS
         load_store : OUT load_store_type;
         DT_offset_sign : OUT DT_offset_sign_type;
 
+        load_instr : OUT load_instr_type;
+        store_instr : OUT store_instr_type;
+
         shift_operand_src : OUT DP_operand_src_type;
         shift_typ : OUT shift_type
     );
@@ -26,31 +29,47 @@ ARCHITECTURE Decoder_arch OF Decoder IS
 
 BEGIN
 
-    WITH instruction (27 DOWNTO 26) SELECT
-    instr_class <= DP WHEN "00",
-        DT WHEN "01",
-        BRN WHEN "10",
-        none WHEN OTHERS;
+    instr_class <=
+        DP WHEN instruction(27 DOWNTO 26) = "00" AND (instruction(4) & instruction(7) = "00" OR instruction(4) & instruction(7) = "01" OR instruction(4) & instruction(7) = "10") ELSE
+        DT WHEN ((instruction(27 DOWNTO 26) = "00" AND instruction(4) & instruction(7) = "11") OR instruction(27 DOWNTO 26) = "01") ELSE
+        BRN;
+
+    store_instr <= strh WHEN instruction(6 DOWNTO 5) = "01" ELSE
+        strb WHEN instruction(27 DOWNTO 26) = "01" AND instruction(22) = '1' ELSE
+        str;
+
+    load_instr <= ldrh WHEN instruction(27 DOWNTO 26) = "00" AND instruction(6 DOWNTO 5) = "01" ELSE
+        ldrsh WHEN instruction(27 DOWNTO 26) = "00" AND instruction(6 DOWNTO 5) = "11" ELSE
+        ldrsb WHEN instruction(27 DOWNTO 26) = "00" AND instruction(6 DOWNTO 5) = "10" ELSE
+        ldrb WHEN instruction(27 DOWNTO 26) = "01" AND instruction(22) = '1' ELSE
+        ldr;
 
     operation <= invalid WHEN instruction = X"00000000" ELSE
         oparray (to_integer(unsigned (instruction (24 DOWNTO 21))));
+
     WITH instruction (24 DOWNTO 22) SELECT
     DP_subclass <= arith WHEN "001" | "010" | "011",
         logic WHEN "000" | "110" | "111",
         comp WHEN "101",
         test WHEN OTHERS;
+
     DP_operand_src <= reg WHEN instruction (25) = '0' ELSE
         imm;
+
     DT_operand_src <= reg WHEN instruction (25) = '1' ELSE
         imm;
+
     load_store <= load WHEN instruction (20) = '1' ELSE
         store;
+
     DT_offset_sign <= plus WHEN instruction (23) = '1' ELSE
         minus;
+
     shift_typ <= LSL WHEN instruction(6 DOWNTO 5) = "00" ELSE
         LSR WHEN instruction(6 DOWNTO 5) = "01" ELSE
         ASR WHEN instruction(6 DOWNTO 5) = "10" ELSE
         RORx;
+
     shift_operand_src <= reg WHEN instruction(4) = '1' ELSE
         imm;
 

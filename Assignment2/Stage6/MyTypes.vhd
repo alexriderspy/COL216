@@ -15,6 +15,8 @@ PACKAGE MyTypes IS
     TYPE load_store_type IS (load, store);
     TYPE DT_offset_sign_type IS (plus, minus);
     TYPE shift_type IS (LSL, LSR, ASR, RORx);
+    TYPE load_instr_type IS (ldr, ldrh, ldrb, ldrsh, ldrsb);
+    TYPE store_instr_type IS (str, strh, strb);
 
 END MyTypes;
 

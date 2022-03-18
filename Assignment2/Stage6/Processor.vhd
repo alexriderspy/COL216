@@ -21,6 +21,10 @@ ARCHITECTURE beh_Processor OF Processor IS
             DT_operand_src : OUT DP_operand_src_type;
             load_store : OUT load_store_type;
             DT_offset_sign : OUT DT_offset_sign_type;
+
+            load_instr : OUT load_instr_type;
+            store_instr : OUT store_instr_type;
+    
             shift_operand_src : OUT DP_operand_src_type;
             shift_typ : OUT shift_type
         );
@@ -98,6 +102,20 @@ ARCHITECTURE beh_Processor OF Processor IS
             carry_out : OUT STD_LOGIC
         );
     END COMPONENT;
+    
+    COMPONENT PMconnect IS
+        PORT (
+            rout : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+            memout : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+            load_instr : IN load_instr_type;
+            store_instr : IN store_instr_type;
+            ctrl_state : IN INTEGER;
+            adr2 : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+            rin : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+            memin : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+            mw : OUT STD_LOGIC_VECTOR(3 DOWNTO 0)
+        );
+    END COMPONENT;
 
     SIGNAL pcin : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL pcout : STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -108,7 +126,8 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL DP_operand_src : DP_operand_src_type;
     SIGNAL load_store : load_store_type;
     SIGNAL DT_offset_sign : DT_offset_sign_type;
-
+    SIGNAL store_instr : store_instr_type;
+    SIGNAL load_instr : load_instr_type;
     SIGNAL rad2 : STD_LOGIC_VECTOR(3 DOWNTO 0);
 
     SIGNAL SBit : STD_LOGIC := '0';
@@ -160,23 +179,28 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL oupt : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL cout_s : STD_LOGIC;
 
+    signal rin : std_logic_vector(31 downto 0);
+    signal memin : std_logic_vector(31 downto 0);
+
     SIGNAL W : STD_LOGIC;
     SIGNAL P : STD_LOGIC;
 
 BEGIN
 
-    DUT1 : Decoder PORT MAP(IR, instr_class, op, DP_subclass, DP_operand_src, DT_operand_src, load_store, DT_offset_sign, shift_operand_src, shift_typ);
+    DUT1 : Decoder PORT MAP(IR, instr_class, op, DP_subclass, DP_operand_src, DT_operand_src, load_store, DT_offset_sign, load_instr, store_instr, shift_operand_src, shift_typ);
 
     DUT2 : regtr PORT MAP(IR(19 DOWNTO 16), rad2, clk, wd, IR(15 DOWNTO 12), rw, rd1, rd2);
     DUT3 : ALU PORT MAP(alu1, alu2, opalu, result, cin, cout);
 
     DUT4 : flagupd PORT MAP(rd1(31), alu2(31), cout, result, '0', IR, DP_subclass, IR(20), ZF, NF, VF, CF);
-    DUT5 : mem PORT MAP(addr, clk, B, rd, mw);
+    DUT5 : mem PORT MAP(addr, clk, memin, rd, mw);
 
     DUT6 : cond PORT MAP(IR(31 DOWNTO 28), ZFlag, VFlag, CFlag, NFlag, p);
 
     DUT7 : Sh_ror PORT MAP(shift_data, shift_amt, shift_ty, CFlag, oupt, cout_s);
     --cout_s is carry_out from shifter
+
+    DUT8 : PMconnect PORT MAP(B,rd,load_instr, store_instr, curr,IR(1 downto 0),rin, memin, mw_pm);
 
     immd <= IR(7 DOWNTO 0);
     offset <= IR(11 DOWNTO 0);
@@ -202,7 +226,7 @@ BEGIN
         IR(11 DOWNTO 8) WHEN curr = 21 ELSE
         IR(15 DOWNTO 12);
 
-    mw <= "1111" WHEN curr = 41 ELSE
+    mw <= mw_pm WHEN curr = 41 ELSE
         "0000";
 
     alu1 <= ("00" & pcout(31 DOWNTO 2)) WHEN curr = 32 ELSE
@@ -231,7 +255,7 @@ BEGIN
     rw <= '1' WHEN (curr = 5 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op = rsb OR op = add OR op = adc OR op = sbc OR op = rsc OR op = orr OR op = mov OR op = bic OR op = mvn)) OR ((curr = 42) AND (W = '1' OR P = '0')) OR ((curr = 41) AND (W = '1' OR P = '0'))) ELSE
         '0';
 
-    wd <= rd WHEN curr = 5 ELSE
+    wd <= rin WHEN curr = 5 ELSE
         RES;
 
     PROCESS (clk, reset)
