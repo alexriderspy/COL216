@@ -7,3 +7,4 @@
     ldrh r2,[r1]
     ldrh r2,[r1,#-2]
 .end
+
