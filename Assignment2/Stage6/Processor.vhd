@@ -213,6 +213,7 @@ BEGIN
 
     shift_amt <= C(4 DOWNTO 0) WHEN curr = 22 ELSE
         IR(11 DOWNTO 8) & '0' WHEN curr = 23 ELSE
+        "00000" when curr = 24 and ((load_store = load and (load_instr = ldrh or load_instr = ldrsh or load_instr = ldrsb)) or (load_store= store and store_instr = strh)) else 
         IR(11 DOWNTO 7);
 
     shift_data <= (X"000000" & immd) WHEN curr = 23 ELSE

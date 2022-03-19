@@ -56,7 +56,7 @@ BEGIN
     DP_operand_src <= reg WHEN instruction (25) = '0' ELSE
         imm;
 
-    DT_operand_src <= reg WHEN instruction (25) = '1' ELSE
+    DT_operand_src <= reg WHEN ((instruction (25) = '1' and instruction(27 DOWNTO 26) = "01") or (instruction(27 DOWNTO 26) = "00" and instruction(22) = '0')) ELSE
         imm;
 
     load_store <= load WHEN instruction (20) = '1' ELSE

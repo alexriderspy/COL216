@@ -15,12 +15,13 @@ END mem;
 ARCHITECTURE mem_arch OF mem IS
     TYPE table IS ARRAY(127 DOWNTO 0) OF STD_LOGIC_VECTOR(31 DOWNTO 0); --16 - 32 bit addresses
     SIGNAL dmem : table := (
-    64 => X"E3E00000",
+    64 => X"E3A00001",
     65 => X"E3A01002",
     66 => X"E3A03000",
-    67 => X"E5830000",
-    68 => X"E1D120F0",
-    69 => X"E0D320B2",
+    67 => X"E5013002",
+    68 => X"E1C100B0",
+    69 => X"E1D120B0",
+    70 => X"E15120B2",
     others => X"00000000"
     );
     
