@@ -24,7 +24,7 @@ ARCHITECTURE beh_Processor OF Processor IS
 
             load_instr : OUT load_instr_type;
             store_instr : OUT store_instr_type;
-    
+
             shift_operand_src : OUT DP_operand_src_type;
             shift_typ : OUT shift_type
         );
@@ -102,7 +102,7 @@ ARCHITECTURE beh_Processor OF Processor IS
             carry_out : OUT STD_LOGIC
         );
     END COMPONENT;
-    
+
     COMPONENT PMconnect IS
         PORT (
             rout : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -179,11 +179,13 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL oupt : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL cout_s : STD_LOGIC;
 
-    signal rin : std_logic_vector(31 downto 0);
-    signal memin : std_logic_vector(31 downto 0);
+    SIGNAL rin : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL memin : STD_LOGIC_VECTOR(31 DOWNTO 0);
 
     SIGNAL W : STD_LOGIC;
-    SIGNAL P : STD_LOGIC;
+    SIGNAL PI : STD_LOGIC;
+    SIGNAL mw_pm : STD_LOGIC_VECTOR(3 DOWNTO 0);
+    SIGNAL adr2 : STD_LOGIC_VECTOR(1 DOWNTO 0);
 
 BEGIN
 
@@ -193,20 +195,21 @@ BEGIN
     DUT3 : ALU PORT MAP(alu1, alu2, opalu, result, cin, cout);
 
     DUT4 : flagupd PORT MAP(rd1(31), alu2(31), cout, result, '0', IR, DP_subclass, IR(20), ZF, NF, VF, CF);
-    DUT5 : mem PORT MAP(addr, clk, memin, rd, mw);
+    DUT5 : mem PORT MAP(addr, clk, memin, rd, mw); --rd is dout
 
     DUT6 : cond PORT MAP(IR(31 DOWNTO 28), ZFlag, VFlag, CFlag, NFlag, p);
 
     DUT7 : Sh_ror PORT MAP(shift_data, shift_amt, shift_ty, CFlag, oupt, cout_s);
     --cout_s is carry_out from shifter
 
-    DUT8 : PMconnect PORT MAP(B,rd,load_instr, store_instr, curr,IR(1 downto 0),rin, memin, mw_pm);
+    DUT8 : PMconnect PORT MAP(B, DR, load_instr, store_instr, curr, adr2, rin, memin, mw_pm);
 
     immd <= IR(7 DOWNTO 0);
-    offset <= IR(11 DOWNTO 0);
+    offset <= IR(11 DOWNTO 0) WHEN ((load_store = load and (load_instr = ldr OR load_instr = ldrb)) or (load_store = store and (store_instr = str OR store_instr = strb))) ELSE
+        ("0000" & IR(11 downto 8) & IR(3 downto 0));
 
     W <= IR(21);
-    P <= IR(24);
+    PI <= IR(24);
 
     shift_amt <= C(4 DOWNTO 0) WHEN curr = 22 ELSE
         IR(11 DOWNTO 8) & '0' WHEN curr = 23 ELSE
@@ -219,8 +222,11 @@ BEGIN
         shift_typ;
 
     addr <= STD_LOGIC_VECTOR(unsigned(pcin(8 DOWNTO 2)) + 64) WHEN curr = 0 ELSE
-        A(8 DOWNTO 2) WHEN P = '0' ELSE --post-index 
+        A(8 DOWNTO 2) WHEN PI = '0' ELSE --post-index 
         RES(8 DOWNTO 2);
+
+    adr2 <= A(1 DOWNTO 0) WHEN PI = '0' ELSE
+        RES(1 DOWNTO 0);
 
     rad2 <= IR(3 DOWNTO 0) WHEN (curr = 1) ELSE
         IR(11 DOWNTO 8) WHEN curr = 21 ELSE
@@ -252,7 +258,7 @@ BEGIN
         CFlag WHEN (curr = 30 AND (op = adc OR op = sbc OR op = rsc)) ELSE
         '0';
 
-    rw <= '1' WHEN (curr = 5 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op = rsb OR op = add OR op = adc OR op = sbc OR op = rsc OR op = orr OR op = mov OR op = bic OR op = mvn)) OR ((curr = 42) AND (W = '1' OR P = '0')) OR ((curr = 41) AND (W = '1' OR P = '0'))) ELSE
+    rw <= '1' WHEN (curr = 5 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op = rsb OR op = add OR op = adc OR op = sbc OR op = rsc OR op = orr OR op = mov OR op = bic OR op = mvn)) OR ((curr = 42) AND (W = '1' OR PI = '0')) OR ((curr = 41) AND (W = '1' OR PI = '0'))) ELSE
         '0';
 
     wd <= rin WHEN curr = 5 ELSE

@@ -30,8 +30,8 @@ ARCHITECTURE Decoder_arch OF Decoder IS
 BEGIN
 
     instr_class <=
-        DP WHEN instruction(27 DOWNTO 26) = "00" AND (instruction(4) & instruction(7) = "00" OR instruction(4) & instruction(7) = "01" OR instruction(4) & instruction(7) = "10") ELSE
-        DT WHEN ((instruction(27 DOWNTO 26) = "00" AND instruction(4) & instruction(7) = "11") OR instruction(27 DOWNTO 26) = "01") ELSE
+        DP WHEN instruction(27 DOWNTO 26) = "00" AND (instruction(4) = '0' OR instruction(7)='0') ELSE
+        DT WHEN ((instruction(27 DOWNTO 26) = "00" AND instruction(4) = '1' and instruction(7) = '1') OR instruction(27 DOWNTO 26) = "01") ELSE
         BRN;
 
     store_instr <= strh WHEN instruction(6 DOWNTO 5) = "01" ELSE
