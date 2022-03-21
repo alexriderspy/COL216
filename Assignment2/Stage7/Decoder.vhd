@@ -18,7 +18,9 @@ ENTITY Decoder IS
         store_instr : OUT store_instr_type;
 
         shift_operand_src : OUT DP_operand_src_type;
-        shift_typ : OUT shift_type
+        shift_typ : OUT shift_type;
+
+        mul_acc : OUT mul_acc_type
     );
 END Decoder;
 
@@ -30,8 +32,9 @@ ARCHITECTURE Decoder_arch OF Decoder IS
 BEGIN
 
     instr_class <=
-        DP WHEN instruction(27 DOWNTO 26) = "00" AND (instruction(4) = '0' OR instruction(7)='0') ELSE
-        DT WHEN ((instruction(27 DOWNTO 26) = "00" AND instruction(4) = '1' and instruction(7) = '1') OR instruction(27 DOWNTO 26) = "01") ELSE
+        DP WHEN instruction(27 DOWNTO 26) = "00" AND (instruction(4) = '0' OR instruction(7) = '0') ELSE
+        MUL WHEN (instruction(27 DOWNTO 26) = "00" AND instruction(4) = '1' AND instruction(7) = '1' AND instruction(6) = '0' AND instruction(5) = '0') ELSE
+        DT WHEN ((instruction(27 DOWNTO 26) = "00" AND instruction(4) = '1' AND instruction(7) = '1') OR instruction(27 DOWNTO 26) = "01") ELSE
         BRN;
 
     store_instr <= strh WHEN instruction(6 DOWNTO 5) = "01" ELSE
@@ -56,7 +59,7 @@ BEGIN
     DP_operand_src <= reg WHEN instruction (25) = '0' ELSE
         imm;
 
-    DT_operand_src <= reg WHEN ((instruction (25) = '1' and instruction(27 DOWNTO 26) = "01") or (instruction(27 DOWNTO 26) = "00" and instruction(22) = '0')) ELSE
+    DT_operand_src <= reg WHEN ((instruction (25) = '1' AND instruction(27 DOWNTO 26) = "01") OR (instruction(27 DOWNTO 26) = "00" AND instruction(22) = '0')) ELSE
         imm;
 
     load_store <= load WHEN instruction (20) = '1' ELSE
@@ -73,4 +76,10 @@ BEGIN
     shift_operand_src <= reg WHEN instruction(4) = '1' ELSE
         imm;
 
+    mul_acc <= mul WHEN (instruction(24 DOWNTO 23) = "00" and instruction(21) = '0') ELSE
+        mla WHEN (instruction(24 DOWNTO 23) = "00" and instruction(21) = '1') ELSE
+        umull WHEN (instruction(24 DOWNTO 23) = "01" and instruction(22 downto 21) = "00") ELSE
+        smull WHEN (instruction(24 DOWNTO 23) = "01" and instruction(22 downto 21) = "10") ELSE
+        umlal WHEN (instruction(24 DOWNTO 23) = "01" and instruction(22 downto 21) = "01") ELSE
+        smlal;
 END Decoder_arch;

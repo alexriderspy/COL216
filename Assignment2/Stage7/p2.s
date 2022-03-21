@@ -1,7 +1,6 @@
 .text
-    mov r0, #-2
-    mov r1,#0
-    mov r3,#0
-    str r0,[r3]
-    ldrsh r2,[r1]
+    mov r0, #1
+    mov r1, #2
+    mov r2, #3
+    mla r4,r0,r1,r2
 .end

@@ -17,6 +17,7 @@ PACKAGE MyTypes IS
     TYPE shift_type IS (LSL, LSR, ASR, RORx);
     TYPE load_instr_type IS (ldr, ldrh, ldrb, ldrsh, ldrsb);
     TYPE store_instr_type IS (str, strh, strb);
+    TYPE mul_acc_type IS (mul,mla,umull,umlal,smull,smlal);
 
 END MyTypes;
 
