@@ -26,7 +26,8 @@ ARCHITECTURE beh_Processor OF Processor IS
             store_instr : OUT store_instr_type;
 
             shift_operand_src : OUT DP_operand_src_type;
-            shift_typ : OUT shift_type
+            shift_typ : OUT shift_type;
+            mul_acc : OUT mul_acc_type
         );
     END COMPONENT;
 
@@ -117,6 +118,17 @@ ARCHITECTURE beh_Processor OF Processor IS
         );
     END COMPONENT;
 
+    COMPONENT mul_acc IS
+        PORT (
+            Rd_val : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+            Rn_val : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+            Rs_val : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+            Rm_val : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+            mul_acc : IN mul_acc_type;
+            result : OUT STD_LOGIC_VECTOR(63 DOWNTO 0)
+        );
+    END COMPONENT;
+
     SIGNAL pcin : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL pcout : STD_LOGIC_VECTOR(31 DOWNTO 0);
 
@@ -163,6 +175,11 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL IR : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL DR : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL RES : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL RES_64 : STD_LOGIC_VECTOR(63 DOWNTO 0);
+    SIGNAL Rm_val : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL Rn_val : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL Rs_val : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL Rd_val : STD_LOGIC_VECTOR(31 DOWNTO 0);
 
     SIGNAL curr : INTEGER;
 
@@ -189,9 +206,9 @@ ARCHITECTURE beh_Processor OF Processor IS
 
 BEGIN
 
-    DUT1 : Decoder PORT MAP(IR, instr_class, op, DP_subclass, DP_operand_src, DT_operand_src, load_store, DT_offset_sign, load_instr, store_instr, shift_operand_src, shift_typ);
+    DUT1 : Decoder PORT MAP(IR, instr_class, op, DP_subclass, DP_operand_src, DT_operand_src, load_store, DT_offset_sign, load_instr, store_instr, shift_operand_src, shift_typ, mul_acc);
 
-    DUT2 : regtr PORT MAP(IR(19 DOWNTO 16), rad2, clk, wd, IR(15 DOWNTO 12), rw, rd1, rd2);
+    DUT2 : regtr PORT MAP(rad1, rad2, clk, wd, addw, rw, rd1, rd2);
     DUT3 : ALU PORT MAP(alu1, alu2, opalu, result, cin, cout);
 
     DUT4 : flagupd PORT MAP(rd1(31), alu2(31), cout, result, '0', IR, DP_subclass, IR(20), ZF, NF, VF, CF);
@@ -203,17 +220,18 @@ BEGIN
     --cout_s is carry_out from shifter
 
     DUT8 : PMconnect PORT MAP(B, DR, load_instr, store_instr, curr, adr2, rin, memin, mw_pm);
+    DUT9 : mul_acc PORT MAP(Rd_val, Rn_val, Rs_val, Rm_val, mul_acc, mul_res); --mul_res is 64 bits
 
     immd <= IR(7 DOWNTO 0);
-    offset <= IR(11 DOWNTO 0) WHEN ((load_store = load and (load_instr = ldr OR load_instr = ldrb)) or (load_store = store and (store_instr = str OR store_instr = strb))) ELSE
-        ("0000" & IR(11 downto 8) & IR(3 downto 0));
+    offset <= IR(11 DOWNTO 0) WHEN ((load_store = load AND (load_instr = ldr OR load_instr = ldrb)) OR (load_store = store AND (store_instr = str OR store_instr = strb))) ELSE
+        ("0000" & IR(11 DOWNTO 8) & IR(3 DOWNTO 0));
 
     W <= IR(21);
     PI <= IR(24);
 
     shift_amt <= C(4 DOWNTO 0) WHEN curr = 22 ELSE
         IR(11 DOWNTO 8) & '0' WHEN curr = 23 ELSE
-        "00000" when curr = 24 and ((load_store = load and (load_instr = ldrh or load_instr = ldrsh or load_instr = ldrsb)) or (load_store= store and store_instr = strh)) else 
+        "00000" WHEN curr = 24 AND ((load_store = load AND (load_instr = ldrh OR load_instr = ldrsh OR load_instr = ldrsb)) OR (load_store = store AND store_instr = strh)) ELSE
         IR(11 DOWNTO 7);
 
     shift_data <= (X"000000" & immd) WHEN curr = 23 ELSE
@@ -229,8 +247,14 @@ BEGIN
     adr2 <= A(1 DOWNTO 0) WHEN PI = '0' ELSE
         RES(1 DOWNTO 0);
 
+    addw <= IR(19 downto 16) when ((curr = 51) or (curr = 6 and (mul_acc = mla or mul_acc = mul))) else
+        IR(15 downto 12);
+
+    rad1 <= IR(3 DOWNTO 0) WHEN (curr = 26) ELSE
+        IR(19 DOWNTO 16);
+
     rad2 <= IR(3 DOWNTO 0) WHEN (curr = 1) ELSE
-        IR(11 DOWNTO 8) WHEN curr = 21 ELSE
+        IR(11 DOWNTO 8) WHEN (curr = 21 OR curr = 26) ELSE
         IR(15 DOWNTO 12);
 
     mw <= mw_pm WHEN curr = 41 ELSE
@@ -259,10 +283,12 @@ BEGIN
         CFlag WHEN (curr = 30 AND (op = adc OR op = sbc OR op = rsc)) ELSE
         '0';
 
-    rw <= '1' WHEN (curr = 5 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op = rsb OR op = add OR op = adc OR op = sbc OR op = rsc OR op = orr OR op = mov OR op = bic OR op = mvn)) OR ((curr = 42) AND (W = '1' OR PI = '0')) OR ((curr = 41) AND (W = '1' OR PI = '0'))) ELSE
+    rw <= '1' WHEN (curr = 50 OR (curr = 51 and mul_acc = smlal or mul_acc = smull or mul_acc = umlal or mul_acc = umull ) OR curr = 6 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op = rsb OR op = add OR op = adc OR op = sbc OR op = rsc OR op = orr OR op = mov OR op = bic OR op = mvn)) OR ((curr = 42) AND (W = '1' OR PI = '0')) OR ((curr = 41) AND (W = '1' OR PI = '0'))) ELSE
         '0';
 
-    wd <= rin WHEN curr = 5 ELSE
+    wd <= rin WHEN curr = 50 ELSE
+        RES_64(63 DOWNTO 32) WHEN curr = 51 ELSE
+        RES_64(31 DOWNTO 0) WHEN curr = 6 ELSE
         RES;
 
     PROCESS (clk, reset)
@@ -296,6 +322,8 @@ BEGIN
                         ELSE
                             curr <= 25;
                         END IF;
+                    ELSIF instr_class = MUL THEN
+                        curr <= 26;
                     ELSE
                         curr <= 32;
                     END IF;
@@ -317,6 +345,10 @@ BEGIN
                 WHEN 25 =>
                     C <= (X"00000" & offset); --no shift/rotate
                     curr <= 31;
+                WHEN 26 =>
+                    Rm_val <= rd1;
+                    Rs_val <= rd2;
+                    curr <= 33;
                 WHEN 30 =>
                     RES <= result;
                     curr <= 40;
@@ -341,6 +373,10 @@ BEGIN
                     ELSE
                         pcin <= pcout;
                     END IF;
+                WHEN 33 =>
+                    Rd_val <= rd1;
+                    Rn_val <= rd2;
+                    curr <= 43;
                 WHEN 40 =>
                     curr <= 0;
                     pcin <= pcout;
@@ -349,8 +385,19 @@ BEGIN
                     pcin <= pcout;
                 WHEN 42 =>
                     DR <= rd;
-                    curr <= 5;
-                WHEN 5 =>
+                    curr <= 50;
+                WHEN 43 =>
+                    RES_64 <= mul_res;
+                    --set flags
+                    curr <= 51;
+                WHEN 50 =>
+                    curr <= 0;
+                    pcin <= pcout;
+                WHEN 51 =>
+                    --write high
+                    curr <= 6;
+                WHEN 6 =>
+                    --write low
                     curr <= 0;
                     pcin <= pcout;
                 WHEN OTHERS =>
