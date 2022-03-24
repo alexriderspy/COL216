@@ -19,6 +19,7 @@ ARCHITECTURE beh_mul_acc OF mul_accu IS
     SIGNAL p_s : signed (63 DOWNTO 0);
     SIGNAL p_u : unsigned (63 DOWNTO 0);
     SIGNAL res : STD_LOGIC_VECTOR(63 DOWNTO 0);
+
 BEGIN
 
     p_s <= signed (Rm_val) * signed (Rs_val);
@@ -29,6 +30,7 @@ BEGIN
 
     result <= STD_LOGIC_VECTOR(signed(res) + signed(Rn_val)) WHEN (mul_acc = mla) ELSE
         res WHEN (mul_acc = mul OR mul_acc = smull OR mul_acc = umull) ELSE
+        
         STD_LOGIC_VECTOR(signed(res) + signed(Rd_val & Rn_val));
 
 END beh_mul_acc;
