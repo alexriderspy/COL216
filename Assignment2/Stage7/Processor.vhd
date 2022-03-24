@@ -140,6 +140,9 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL DT_offset_sign : DT_offset_sign_type;
     SIGNAL store_instr : store_instr_type;
     SIGNAL load_instr : load_instr_type;
+    SIGNAL mul_acc : mul_acc_type;
+
+    SIGNAL rad1 : STD_LOGIC_VECTOR(3 DOWNTO 0);
     SIGNAL rad2 : STD_LOGIC_VECTOR(3 DOWNTO 0);
 
     SIGNAL SBit : STD_LOGIC := '0';
@@ -168,6 +171,7 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL offset : STD_LOGIC_VECTOR(11 DOWNTO 0);
     SIGNAL immd : STD_LOGIC_VECTOR(7 DOWNTO 0);
     SIGNAL addr : STD_LOGIC_VECTOR(6 DOWNTO 0);
+    SIGNAL addw : STD_LOGIC_VECTOR(3 DOWNTO 0);
     SIGNAL opalu : optype;
 
     SIGNAL A : STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -194,6 +198,7 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL DT_operand_src : DP_operand_src_type;
     SIGNAL shift_operand_src : DP_operand_src_type;
     SIGNAL oupt : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL mul_res : STD_LOGIC_VECTOR(63 DOWNTO 0);    
     SIGNAL cout_s : STD_LOGIC;
 
     SIGNAL rin : STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -247,8 +252,8 @@ BEGIN
     adr2 <= A(1 DOWNTO 0) WHEN PI = '0' ELSE
         RES(1 DOWNTO 0);
 
-    addw <= IR(19 downto 16) when ((curr = 51) or (curr = 6 and (mul_acc = mla or mul_acc = mul))) else
-        IR(15 downto 12);
+    addw <= IR(19 DOWNTO 16) WHEN ((curr = 51) OR (curr = 6 AND (mul_acc = mla OR mul_acc = mul))) ELSE
+        IR(15 DOWNTO 12);
 
     rad1 <= IR(3 DOWNTO 0) WHEN (curr = 26) ELSE
         IR(19 DOWNTO 16);
@@ -283,7 +288,7 @@ BEGIN
         CFlag WHEN (curr = 30 AND (op = adc OR op = sbc OR op = rsc)) ELSE
         '0';
 
-    rw <= '1' WHEN (curr = 50 OR (curr = 51 and mul_acc = smlal or mul_acc = smull or mul_acc = umlal or mul_acc = umull ) OR curr = 6 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op = rsb OR op = add OR op = adc OR op = sbc OR op = rsc OR op = orr OR op = mov OR op = bic OR op = mvn)) OR ((curr = 42) AND (W = '1' OR PI = '0')) OR ((curr = 41) AND (W = '1' OR PI = '0'))) ELSE
+    rw <= '1' WHEN (curr = 50 OR (curr = 51 AND mul_acc = smlal OR mul_acc = smull OR mul_acc = umlal OR mul_acc = umull) OR curr = 6 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op = rsb OR op = add OR op = adc OR op = sbc OR op = rsc OR op = orr OR op = mov OR op = bic OR op = mvn)) OR ((curr = 42) AND (W = '1' OR PI = '0')) OR ((curr = 41) AND (W = '1' OR PI = '0'))) ELSE
         '0';
 
     wd <= rin WHEN curr = 50 ELSE
