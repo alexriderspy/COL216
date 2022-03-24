@@ -3,7 +3,7 @@ USE IEEE.STD_LOGIC_1164.ALL;
 USE IEEE.numeric_std.ALL;
 USE work.MyTypes.ALL;
 
-ENTITY mul_acc IS
+ENTITY mul_accu IS
     PORT (
         Rd_val : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
         Rn_val : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -12,13 +12,13 @@ ENTITY mul_acc IS
         mul_acc : IN mul_acc_type;
         result : OUT STD_LOGIC_VECTOR(63 DOWNTO 0)
     );
-END mul_acc;
+END mul_accu;
 
-ARCHITECTURE beh_mul_acc OF mul_acc IS
+ARCHITECTURE beh_mul_acc OF mul_accu IS
 
     SIGNAL p_s : signed (63 DOWNTO 0);
     SIGNAL p_u : unsigned (63 DOWNTO 0);
-
+    SIGNAL res : STD_LOGIC_VECTOR(63 DOWNTO 0);
 BEGIN
 
     p_s <= signed (Rm_val) * signed (Rs_val);
