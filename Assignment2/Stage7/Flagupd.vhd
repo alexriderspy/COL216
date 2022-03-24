@@ -9,8 +9,10 @@ ENTITY flagupd IS
         MSBb : IN STD_LOGIC;
         cout : IN STD_LOGIC;
         res : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        res_64 : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
         shiftout : IN STD_LOGIC;
-        instr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        instr : IN instr_class_type;
+        mul_acc : IN mul_acc_type;
         DP_subclass : IN DP_subclass_type;
         SBit : IN STD_LOGIC;
         ZFlag : OUT STD_LOGIC := '0';
@@ -23,9 +25,14 @@ END flagupd;
 ARCHITECTURE flag_arch OF flagupd IS
 
 BEGIN
-    CFlag <= cout when ((DP_subclass = arith and SBit='1') or DP_subclass = comp) else '0';
-    ZFlag <= '1' when (((DP_subclass = arith and SBit = '1') or (DP_subclass = logic and SBit = '1') or (DP_subclass = comp) or (DP_subclass = test)) and (res=X"00000000"))
-        else '0' when (((DP_subclass = arith and SBit = '1') or (DP_subclass = logic and SBit = '1') or (DP_subclass = comp) or (DP_subclass = test))) else '0';
-    NFlag <= res(31) when ((DP_subclass = arith and SBit = '1') or (DP_subclass = logic and SBit = '1') or (DP_subclass = comp) or (DP_subclass = test)) else '0';
-    VFlag <= (MSBa AND MSBb AND NOT(res(31))) OR (NOT(MSBa) AND NOT(MSBb) AND res(31)) when ((DP_subclass = arith and SBit = '1') or (DP_subclass = comp)) else '0';
+    CFlag <= cout WHEN ((DP_subclass = arith AND SBit = '1') OR DP_subclass = comp) ELSE
+        '0';
+    ZFlag <= '1' WHEN ((res_64 = X"0000000000000000" AND SBit = '1' AND instr_class = MUL) OR (((DP_subclass = arith AND SBit = '1') OR (DP_subclass = logic AND SBit = '1') OR (DP_subclass = comp) OR (DP_subclass = test)) AND (res = X"00000000")))
+        ELSE
+        '0';
+    NFlag <= res(31) WHEN ((DP_subclass = arith AND SBit = '1') OR (DP_subclass = logic AND SBit = '1') OR (DP_subclass = comp) OR (DP_subclass = test)) ELSE
+        res_64(63) WHEN (res_64 = X"0000000000000000" AND SBit = '1' AND instr_class = MUL) ELSE
+        '0';
+    VFlag <= (MSBa AND MSBb AND NOT(res(31))) OR (NOT(MSBa) AND NOT(MSBb) AND res(31)) WHEN ((DP_subclass = arith AND SBit = '1') OR (DP_subclass = comp)) ELSE
+        '0';
 END flag_arch;

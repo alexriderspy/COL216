@@ -72,6 +72,7 @@ ARCHITECTURE beh_Processor OF Processor IS
             MSBb : IN STD_LOGIC;
             cout : IN STD_LOGIC;
             res : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+            res_64 : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
             shiftout : IN STD_LOGIC;
             instr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
             DP_subclass : IN DP_subclass_type;
@@ -198,7 +199,7 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL DT_operand_src : DP_operand_src_type;
     SIGNAL shift_operand_src : DP_operand_src_type;
     SIGNAL oupt : STD_LOGIC_VECTOR(31 DOWNTO 0);
-    SIGNAL mul_res : STD_LOGIC_VECTOR(63 DOWNTO 0);    
+    SIGNAL mul_res : STD_LOGIC_VECTOR(63 DOWNTO 0);
     SIGNAL cout_s : STD_LOGIC;
 
     SIGNAL rin : STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -216,7 +217,7 @@ BEGIN
     DUT2 : regtr PORT MAP(rad1, rad2, clk, wd, addw, rw, rd1, rd2);
     DUT3 : ALU PORT MAP(alu1, alu2, opalu, result, cin, cout);
 
-    DUT4 : flagupd PORT MAP(rd1(31), alu2(31), cout, result, '0', IR, DP_subclass, IR(20), ZF, NF, VF, CF);
+    DUT4 : flagupd PORT MAP(rd1(31), alu2(31), cout, result, RES_64, '0', instr_class, mul_acc, DP_subclass, IR(20), ZF, NF, VF, CF);
     DUT5 : mem PORT MAP(addr, clk, memin, rd, mw); --rd is dout
 
     DUT6 : cond PORT MAP(IR(31 DOWNTO 28), ZFlag, VFlag, CFlag, NFlag, p);
@@ -393,7 +394,10 @@ BEGIN
                     curr <= 50;
                 WHEN 43 =>
                     RES_64 <= mul_res;
-                    --set flags
+                    IF IR(20) = '1' THEN
+                        ZFlag <= ZF;
+                        NFlag <= NF;
+                    END IF;
                     curr <= 51;
                 WHEN 50 =>
                     curr <= 0;
