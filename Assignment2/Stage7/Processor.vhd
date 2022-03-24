@@ -72,8 +72,10 @@ ARCHITECTURE beh_Processor OF Processor IS
             MSBb : IN STD_LOGIC;
             cout : IN STD_LOGIC;
             res : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+            res_64 : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
             shiftout : IN STD_LOGIC;
-            instr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+            instr : IN instr_class_type;
+            mul_acc : IN mul_acc_type;
             DP_subclass : IN DP_subclass_type;
             SBit : IN STD_LOGIC;
             ZFlag : OUT STD_LOGIC;
@@ -145,7 +147,6 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL rad1 : STD_LOGIC_VECTOR(3 DOWNTO 0);
     SIGNAL rad2 : STD_LOGIC_VECTOR(3 DOWNTO 0);
 
-    SIGNAL SBit : STD_LOGIC := '0';
     SIGNAL wd : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL rd1 : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL rd : STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -155,7 +156,7 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL result : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL rw : STD_LOGIC := '0';
     SIGNAL mw : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
-    SIGNAL cout : STD_LOGIC;
+    SIGNAL cout : STD_LOGIC := '0';
 
     SIGNAL cin : STD_LOGIC := '0';
 
@@ -174,16 +175,16 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL addw : STD_LOGIC_VECTOR(3 DOWNTO 0);
     SIGNAL opalu : optype;
 
-    SIGNAL A : STD_LOGIC_VECTOR(31 DOWNTO 0);
-    SIGNAL B : STD_LOGIC_VECTOR(31 DOWNTO 0);
-    SIGNAL IR : STD_LOGIC_VECTOR(31 DOWNTO 0);
-    SIGNAL DR : STD_LOGIC_VECTOR(31 DOWNTO 0);
-    SIGNAL RES : STD_LOGIC_VECTOR(31 DOWNTO 0);
-    SIGNAL RES_64 : STD_LOGIC_VECTOR(63 DOWNTO 0);
-    SIGNAL Rm_val : STD_LOGIC_VECTOR(31 DOWNTO 0);
-    SIGNAL Rn_val : STD_LOGIC_VECTOR(31 DOWNTO 0);
-    SIGNAL Rs_val : STD_LOGIC_VECTOR(31 DOWNTO 0);
-    SIGNAL Rd_val : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL A : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    SIGNAL B : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    SIGNAL IR : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    SIGNAL DR : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    SIGNAL RES : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    SIGNAL RES_64 : STD_LOGIC_VECTOR(63 DOWNTO 0) := X"0000000000000000";
+    SIGNAL Rm_val : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    SIGNAL Rn_val : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    SIGNAL Rs_val : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    SIGNAL Rd_val : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
 
     SIGNAL curr : INTEGER;
 
@@ -198,7 +199,7 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL DT_operand_src : DP_operand_src_type;
     SIGNAL shift_operand_src : DP_operand_src_type;
     SIGNAL oupt : STD_LOGIC_VECTOR(31 DOWNTO 0);
-    SIGNAL mul_res : STD_LOGIC_VECTOR(63 DOWNTO 0);    
+    SIGNAL mul_res : STD_LOGIC_VECTOR(63 DOWNTO 0);
     SIGNAL cout_s : STD_LOGIC;
 
     SIGNAL rin : STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -216,7 +217,7 @@ BEGIN
     DUT2 : regtr PORT MAP(rad1, rad2, clk, wd, addw, rw, rd1, rd2);
     DUT3 : ALU PORT MAP(alu1, alu2, opalu, result, cin, cout);
 
-    DUT4 : flagupd PORT MAP(rd1(31), alu2(31), cout, result, '0', IR, DP_subclass, IR(20), ZF, NF, VF, CF);
+    DUT4 : flagupd PORT MAP(rd1(31), alu2(31), cout, result,  mul_res, '0', instr_class, mul_acc, DP_subclass, IR(20), ZF, NF, VF, CF);
     DUT5 : mem PORT MAP(addr, clk, memin, rd, mw); --rd is dout
 
     DUT6 : cond PORT MAP(IR(31 DOWNTO 28), ZFlag, VFlag, CFlag, NFlag, p);
@@ -393,7 +394,10 @@ BEGIN
                     curr <= 50;
                 WHEN 43 =>
                     RES_64 <= mul_res;
-                    --set flags
+                    IF IR(20) = '1' THEN
+                        ZFlag <= ZF;
+                        NFlag <= NF;
+                    END IF;
                     curr <= 51;
                 WHEN 50 =>
                     curr <= 0;
