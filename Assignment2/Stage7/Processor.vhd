@@ -118,7 +118,7 @@ ARCHITECTURE beh_Processor OF Processor IS
         );
     END COMPONENT;
 
-    COMPONENT mul_acc IS
+    COMPONENT mul_accu IS
         PORT (
             Rd_val : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
             Rn_val : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -225,7 +225,7 @@ BEGIN
     --cout_s is carry_out from shifter
 
     DUT8 : PMconnect PORT MAP(B, DR, load_instr, store_instr, curr, adr2, rin, memin, mw_pm);
-    DUT9 : mul_acc PORT MAP(Rd_val, Rn_val, Rs_val, Rm_val, mul_acc, mul_res); --mul_res is 64 bits
+    DUT9 : mul_accu PORT MAP(Rd_val, Rn_val, Rs_val, Rm_val, mul_acc, mul_res); --mul_res is 64 bits
 
     immd <= IR(7 DOWNTO 0);
     offset <= IR(11 DOWNTO 0) WHEN ((load_store = load AND (load_instr = ldr OR load_instr = ldrb)) OR (load_store = store AND (store_instr = str OR store_instr = strb))) ELSE
@@ -288,7 +288,7 @@ BEGIN
         CFlag WHEN (curr = 30 AND (op = adc OR op = sbc OR op = rsc)) ELSE
         '0';
 
-    rw <= '1' WHEN (curr = 50 OR (curr = 51 AND mul_acc = smlal OR mul_acc = smull OR mul_acc = umlal OR mul_acc = umull) OR curr = 6 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op = rsb OR op = add OR op = adc OR op = sbc OR op = rsc OR op = orr OR op = mov OR op = bic OR op = mvn)) OR ((curr = 42) AND (W = '1' OR PI = '0')) OR ((curr = 41) AND (W = '1' OR PI = '0'))) ELSE
+    rw <= '1' WHEN (curr = 50 OR (curr = 51 AND (mul_acc = smlal OR mul_acc = smull OR mul_acc = umlal OR mul_acc = umull)) OR curr = 6 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op = rsb OR op = add OR op = adc OR op = sbc OR op = rsc OR op = orr OR op = mov OR op = bic OR op = mvn)) OR ((curr = 42) AND (W = '1' OR PI = '0')) OR ((curr = 41) AND (W = '1' OR PI = '0'))) ELSE
         '0';
 
     wd <= rin WHEN curr = 50 ELSE
