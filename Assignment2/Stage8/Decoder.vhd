@@ -20,7 +20,10 @@ ENTITY Decoder IS
         shift_operand_src : OUT DP_operand_src_type;
         shift_typ : OUT shift_type;
 
-        mul_acc : OUT mul_acc_type
+        mul_acc : OUT mul_acc_type;
+
+        branch_class : OUT branch_type;
+        return_class : OUT return_type
     );
 END Decoder;
 
@@ -34,8 +37,16 @@ BEGIN
     instr_class <=
         DP WHEN instruction(27 DOWNTO 26) = "00" AND (instruction(4) = '0' OR instruction(7) = '0') ELSE
         MUL WHEN (instruction(27 DOWNTO 26) = "00" AND instruction(4) = '1' AND instruction(7) = '1' AND instruction(6) = '0' AND instruction(5) = '0') ELSE
-        DT WHEN ((instruction(27 DOWNTO 26) = "00" AND instruction(4) = '1' AND instruction(7) = '1') OR instruction(27 DOWNTO 26) = "01") ELSE
+        DT WHEN ((instruction(27 DOWNTO 26) = "00" AND instruction(4) = '1' AND instruction(7) = '1') OR (instruction(27 DOWNTO 26) = "01" AND instruction(4) = '0')) ELSE
+        RE WHEN (instruction(27 DOWNTO 26) = "01" AND instruction(4) = '1') ELSE
+        SWI WHEN instruction(27 DOWNTO 26) = "11" ELSE
         BRN;
+
+    branch_class <= BL WHEN instruction(24) = '1' ELSE
+        B;
+
+    return_class <= RET WHEN instruction(0) = '0' ELSE
+        RTE;
 
     store_instr <= strh WHEN instruction(6 DOWNTO 5) = "01" ELSE
         strb WHEN instruction(27 DOWNTO 26) = "01" AND instruction(22) = '1' ELSE
@@ -76,10 +87,10 @@ BEGIN
     shift_operand_src <= reg WHEN instruction(4) = '1' ELSE
         imm;
 
-    mul_acc <= mul WHEN (instruction(24 DOWNTO 23) = "00" and instruction(21) = '0') ELSE
-        mla WHEN (instruction(24 DOWNTO 23) = "00" and instruction(21) = '1') ELSE
-        umull WHEN (instruction(24 DOWNTO 23) = "01" and instruction(22 downto 21) = "00") ELSE
-        smull WHEN (instruction(24 DOWNTO 23) = "01" and instruction(22 downto 21) = "10") ELSE
-        umlal WHEN (instruction(24 DOWNTO 23) = "01" and instruction(22 downto 21) = "01") ELSE
+    mul_acc <= mul WHEN (instruction(24 DOWNTO 23) = "00" AND instruction(21) = '0') ELSE
+        mla WHEN (instruction(24 DOWNTO 23) = "00" AND instruction(21) = '1') ELSE
+        umull WHEN (instruction(24 DOWNTO 23) = "01" AND instruction(22 DOWNTO 21) = "00") ELSE
+        smull WHEN (instruction(24 DOWNTO 23) = "01" AND instruction(22 DOWNTO 21) = "10") ELSE
+        umlal WHEN (instruction(24 DOWNTO 23) = "01" AND instruction(22 DOWNTO 21) = "01") ELSE
         smlal;
 END Decoder_arch;

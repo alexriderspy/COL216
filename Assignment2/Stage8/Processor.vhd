@@ -27,7 +27,10 @@ ARCHITECTURE beh_Processor OF Processor IS
 
             shift_operand_src : OUT DP_operand_src_type;
             shift_typ : OUT shift_type;
-            mul_acc : OUT mul_acc_type
+            mul_acc : OUT mul_acc_type;
+            branch_class : OUT branch_type;
+            return_class : OUT return_type
+
         );
     END COMPONENT;
 
@@ -143,7 +146,8 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL store_instr : store_instr_type;
     SIGNAL load_instr : load_instr_type;
     SIGNAL mul_acc : mul_acc_type;
-
+    SIGNAL branch_class : branch_type;
+    SIGNAL return_class : return_type;
     SIGNAL rad1 : STD_LOGIC_VECTOR(3 DOWNTO 0);
     SIGNAL rad2 : STD_LOGIC_VECTOR(3 DOWNTO 0);
 
@@ -210,9 +214,10 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL mw_pm : STD_LOGIC_VECTOR(3 DOWNTO 0);
     SIGNAL adr2 : STD_LOGIC_VECTOR(1 DOWNTO 0);
 
+    SIGNAL mode : STD_LOGIC;
 BEGIN
 
-    DUT1 : Decoder PORT MAP(IR, instr_class, op, DP_subclass, DP_operand_src, DT_operand_src, load_store, DT_offset_sign, load_instr, store_instr, shift_operand_src, shift_typ, mul_acc);
+    DUT1 : Decoder PORT MAP(IR, instr_class, op, DP_subclass, DP_operand_src, DT_operand_src, load_store, DT_offset_sign, load_instr, store_instr, shift_operand_src, shift_typ, mul_acc, branch_class, return_class);
 
     DUT2 : regtr PORT MAP(rad1, rad2, clk, wd, addw, rw, rd1, rd2);
     DUT3 : ALU PORT MAP(alu1, alu2, opalu, result, cin, cout);
@@ -245,9 +250,10 @@ BEGIN
     shift_ty <= RORx WHEN curr = 23 ELSE
         shift_typ;
 
-    addr <= STD_LOGIC_VECTOR(unsigned(pcin(8 DOWNTO 2)) + 64) WHEN curr = 0 ELSE
-        A(8 DOWNTO 2) WHEN PI = '0' ELSE --post-index 
-        RES(8 DOWNTO 2);
+    addr <= STD_LOGIC_VECTOR(unsigned(pcin(8 DOWNTO 2)) + 96) WHEN curr = 0 AND mode = '0' ELSE
+        STD_LOGIC_VECTOR(unsigned(pcin(8 DOWNTO 2))) WHEN curr = 0 AND mode = '1' ELSE
+        (A(8 DOWNTO 2) + 64) WHEN PI = '0' ELSE --post-index 
+        (RES(8 DOWNTO 2) + 64);
 
     adr2 <= A(1 DOWNTO 0) WHEN PI = '0' ELSE
         RES(1 DOWNTO 0);
@@ -256,20 +262,21 @@ BEGIN
         IR(15 DOWNTO 12);
 
     rad1 <= IR(3 DOWNTO 0) WHEN (curr = 26) ELSE
+        "1110" WHEN curr = 34 ELSE
         IR(19 DOWNTO 16);
 
     rad2 <= IR(3 DOWNTO 0) WHEN (curr = 1) ELSE
         IR(11 DOWNTO 8) WHEN (curr = 21 OR curr = 26) ELSE
         IR(15 DOWNTO 12);
 
-    mw <= mw_pm WHEN curr = 41 and p = '1' ELSE
+    mw <= mw_pm WHEN curr = 41 AND p = '1' ELSE
         "0000";
 
-    alu1 <= ("00" & pcout(31 DOWNTO 2)) WHEN curr = 32 ELSE
+    alu1 <= ("00" & pcout(31 DOWNTO 2)) WHEN (curr = 32 OR curr = 34) ELSE
         pcin WHEN curr = 0 ELSE
         A;
 
-    alu2 <= (S_ext & S_offset) WHEN curr = 32 AND p = '1' ELSE
+    alu2 <= (S_ext & S_offset) WHEN ((curr = 32 OR curr = 34) AND p = '1') ELSE
         (X"0000000" & "0100") WHEN curr = 0 ELSE
         C WHEN curr = 31 ELSE
         B;
@@ -299,7 +306,8 @@ BEGIN
     PROCESS (clk, reset)
     BEGIN
         IF (reset = '1') THEN
-            pcin <= x"00000000";
+            mode <= '1';
+            pcin <= X"00000000";
             curr <= 0;
         ELSIF rising_edge(clk) THEN
             CASE curr IS
@@ -329,6 +337,10 @@ BEGIN
                         END IF;
                     ELSIF instr_class = MUL THEN
                         curr <= 26;
+                    ELSIF instr_class = RE THEN
+                        curr <= 34;
+                    ELSIF instr_class = SWI THEN
+                        curr <= 35;
                     ELSE
                         curr <= 32;
                     END IF;
@@ -378,10 +390,21 @@ BEGIN
                     ELSE
                         pcin <= pcout;
                     END IF;
+                    IF p = '1' AND branch_class = BL THEN
+                        lr <= (pcout);
+                    END IF;
                 WHEN 33 =>
                     Rd_val <= rd1;
                     Rn_val <= rd2;
                     curr <= 43;
+                WHEN 34 =>
+                    lr <= rd1;
+                    curr <= 44;
+                when 35 => --swi
+                    lr <= (pcout);
+                    mode <= '1';
+                    pcin <= X"00000008";
+                    curr <= 0;
                 WHEN 40 =>
                     curr <= 0;
                     pcin <= pcout;
@@ -398,6 +421,12 @@ BEGIN
                         NFlag <= NF;
                     END IF;
                     curr <= 51;
+                WHEN 44 =>
+                    IF return_class = RTE THEN
+                        mode <= '0';
+                    END IF;
+                    pcin <= lr;
+                    curr <= 0;
                 WHEN 50 =>
                     curr <= 0;
                     pcin <= pcout;
