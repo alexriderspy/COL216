@@ -20,8 +20,9 @@ ARCHITECTURE mem_arch OF mem IS
         8 => X"E3A00C01", --instruction to be executed for reset
         9 => X"E590E000",
         10 => X"E6000011", --rte
-        16 => X"", --instruction to be executed for swi
-        17 => X"",
+        16 => X"E5900000", --instruction to be executed for swi
+        17 => X"E6000011", --rte
+        --user program
         96 => X"E3A00000",
         OTHERS => X"00000000"
     );

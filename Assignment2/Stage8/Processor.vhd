@@ -5,7 +5,8 @@ USE work.MyTypes.ALL;
 
 ENTITY Processor IS
     PORT (
-        clk, reset : IN STD_LOGIC
+        clk, reset : IN STD_LOGIC;
+        input_p : IN STD_LOGIC_VECTOR(31 DOWNTO 0)
     );
 END ENTITY Processor;
 
@@ -298,7 +299,8 @@ BEGIN
     rw <= '1' WHEN (p = '1' AND (curr = 50 OR (curr = 51 AND (mul_acc = smlal OR mul_acc = smull OR mul_acc = umlal OR mul_acc = umull)) OR curr = 6 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op = rsb OR op = add OR op = adc OR op = sbc OR op = rsc OR op = orr OR op = mov OR op = bic OR op = mvn)) OR ((curr = 42) AND (W = '1' OR PI = '0')) OR ((curr = 41) AND (W = '1' OR PI = '0')))) ELSE
         '0';
 
-    wd <= rin WHEN curr = 50 ELSE
+    wd <= input_p WHEN curr = 50 AND PREV = X"06" AND mode = '1' ELSE
+        rin WHEN curr = 50 ELSE
         RES_64(63 DOWNTO 32) WHEN curr = 51 ELSE
         RES_64(31 DOWNTO 0) WHEN curr = 6 ELSE
         RES;
@@ -368,6 +370,7 @@ BEGIN
                     curr <= 33;
                 WHEN 30 =>
                     RES <= result;
+                    PREV <= result;
                     curr <= 40;
                     IF IR(20) = '1' THEN
                         ZFlag <= ZF;
@@ -400,7 +403,7 @@ BEGIN
                 WHEN 34 =>
                     lr <= rd1;
                     curr <= 44;
-                when 35 => --swi
+                WHEN 35 => --swi
                     lr <= (pcout);
                     mode <= '1';
                     pcin <= X"00000008";

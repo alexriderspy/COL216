@@ -1,5 +1,4 @@
 .text
-    mov r0,#2
-    mov r1,#-5
-    smulls r3,r2,r1,r0
+    mov r0,#28
+    ldr r0,[r0]
 .end
