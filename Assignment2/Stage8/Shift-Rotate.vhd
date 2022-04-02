@@ -10,7 +10,8 @@ ENTITY Sh_ror IS
         typ : IN shift_type;
         carry_in : IN STD_LOGIC;
         oupt : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
-        carry_out : OUT STD_LOGIC
+        carry_out : OUT STD_LOGIC;
+        isShift : OUT STD_LOGIC
     );
 END Sh_ror;
 
@@ -52,4 +53,6 @@ BEGIN
         carry_outR;
     oupt <= ouptL WHEN typ = LSL ELSE
         ouptR;
+    isShift <= '0' WHEN ((ouptL = inp AND typ = LSL) OR (ouptR = inp AND (typ = RORx OR typ = ASR OR typ = LSR))) ELSE
+        '1';
 END beh_Sh_ror;

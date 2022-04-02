@@ -23,7 +23,18 @@ ARCHITECTURE mem_arch OF mem IS
         16 => X"E5900000", --instruction to be executed for swi
         17 => X"E6000011", --rte
         --user program
-        96 => X"E3A00000",
+        96 => X"E3A00001",
+        97 => X"E3A01002",
+        98 => X"E3A02003",
+        99 => X"E3500001",
+        100 => X"00242190",
+        101 => X"E1500001",
+        102 => X"C0050190",
+        103 => X"E3A03002",
+        104 => X"E3A04005",
+        105 => X"B0C23394",
+        106 => X"E3A03000",
+        107 => X"B0A32091",
         OTHERS => X"00000000"
     );
 

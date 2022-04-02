@@ -1,8 +1,6 @@
-.global sx
-
 .text
-
-func:
-    mov r1,#4
-    @ret 
+    mov r0,#2
+    mov r1,#-5
+    smulls r3,r2,r1,r0
+    umlals  
 .end

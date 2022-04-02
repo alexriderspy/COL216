@@ -80,12 +80,14 @@ ARCHITECTURE beh_Processor OF Processor IS
             shiftout : IN STD_LOGIC;
             instr : IN instr_class_type;
             mul_acc : IN mul_acc_type;
+            opalu  : IN optype;
             DP_subclass : IN DP_subclass_type;
             SBit : IN STD_LOGIC;
             ZFlag : OUT STD_LOGIC;
             NFlag : OUT STD_LOGIC;
             VFlag : OUT STD_LOGIC;
-            CFlag : OUT STD_LOGIC
+            CFlag : OUT STD_LOGIC;
+            isShift : IN STD_LOGIC
         );
     END COMPONENT;
 
@@ -106,7 +108,8 @@ ARCHITECTURE beh_Processor OF Processor IS
             typ : IN shift_type;
             carry_in : IN STD_LOGIC;
             oupt : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
-            carry_out : OUT STD_LOGIC
+            carry_out : OUT STD_LOGIC;
+            isShift : OUT STD_LOGIC
         );
     END COMPONENT;
 
@@ -215,7 +218,11 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL mw_pm : STD_LOGIC_VECTOR(3 DOWNTO 0);
     SIGNAL adr2 : STD_LOGIC_VECTOR(1 DOWNTO 0);
 
-    SIGNAL mode : STD_LOGIC;
+    SIGNAL mode : STD_LOGIC := '0';
+    SIGNAL PREV : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL lr : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL isShift : STD_LOGIC;
+
 BEGIN
 
     DUT1 : Decoder PORT MAP(IR, instr_class, op, DP_subclass, DP_operand_src, DT_operand_src, load_store, DT_offset_sign, load_instr, store_instr, shift_operand_src, shift_typ, mul_acc, branch_class, return_class);
@@ -223,12 +230,12 @@ BEGIN
     DUT2 : regtr PORT MAP(rad1, rad2, clk, wd, addw, rw, rd1, rd2);
     DUT3 : ALU PORT MAP(alu1, alu2, opalu, result, cin, cout);
 
-    DUT4 : flagupd PORT MAP(rd1(31), alu2(31), cout, result, mul_res, '0', instr_class, mul_acc, DP_subclass, IR(20), ZF, NF, VF, CF);
+    DUT4 : flagupd PORT MAP(alu1(31), alu2(31), cout, result, mul_res, cout_s, instr_class, mul_acc, opalu ,DP_subclass, IR(20), ZF, NF, VF, CF,isShift);
     DUT5 : mem PORT MAP(addr, clk, memin, rd, mw); --rd is dout
 
     DUT6 : cond PORT MAP(IR(31 DOWNTO 28), ZFlag, VFlag, CFlag, NFlag, p);
 
-    DUT7 : Sh_ror PORT MAP(shift_data, shift_amt, shift_ty, CFlag, oupt, cout_s);
+    DUT7 : Sh_ror PORT MAP(shift_data, shift_amt, shift_ty, CFlag, oupt, cout_s, isShift);
 
     DUT8 : PMconnect PORT MAP(B, DR, load_instr, store_instr, curr, adr2, rin, memin, mw_pm);
     DUT9 : mul_accu PORT MAP(Rd_val, Rn_val, Rs_val, Rm_val, mul_acc, mul_res); --mul_res is 64 bits
@@ -253,8 +260,8 @@ BEGIN
 
     addr <= STD_LOGIC_VECTOR(unsigned(pcin(8 DOWNTO 2)) + 96) WHEN curr = 0 AND mode = '0' ELSE
         STD_LOGIC_VECTOR(unsigned(pcin(8 DOWNTO 2))) WHEN curr = 0 AND mode = '1' ELSE
-        (A(8 DOWNTO 2) + 64) WHEN PI = '0' ELSE --post-index 
-        (RES(8 DOWNTO 2) + 64);
+        STD_LOGIC_VECTOR(unsigned(A(8 DOWNTO 2)) + 64) WHEN PI = '0' ELSE --post-index 
+        STD_LOGIC_VECTOR(unsigned(RES(8 DOWNTO 2)) + 64);
 
     adr2 <= A(1 DOWNTO 0) WHEN PI = '0' ELSE
         RES(1 DOWNTO 0);
@@ -441,7 +448,8 @@ BEGIN
                     curr <= 0;
                     pcin <= pcout;
                 WHEN OTHERS =>
-                    NULL;
+                    curr <= 0;
+                    pcin <= X"00000000";
             END CASE;
         END IF;
     END PROCESS;
