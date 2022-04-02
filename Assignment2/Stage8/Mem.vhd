@@ -15,32 +15,23 @@ END mem;
 ARCHITECTURE mem_arch OF mem IS
     TYPE table IS ARRAY(127 DOWNTO 0) OF STD_LOGIC_VECTOR(31 DOWNTO 0); --16 - 32 bit addresses
     SIGNAL dmem : table := (
-        0 => X"EA000018", --reset
-        2 => X"EA000030", --swi
+        0 => X"EA000006", --reset
+        2 => X"EA00000C", --swi
         8 => X"E3A00C01", --instruction to be executed for reset
         9 => X"E590E000",
         10 => X"E6000011", --rte
         16 => X"E5900000", --instruction to be executed for swi
         17 => X"E6000011", --rte
         --user program
-        96 => X"E3A00001",
-        97 => X"E3A01002",
-        98 => X"E3A02003",
-        99 => X"E3500001",
-        100 => X"00242190",
-        101 => X"E1500001",
-        102 => X"C0050190",
-        103 => X"E3A03002",
-        104 => X"E3A04005",
-        105 => X"B0C23394",
-        106 => X"E3A03000",
-        107 => X"B0A32091",
+        96 => X"EF000000",
+        97 => X"E2001001",
+        98 => X"E3510001",
+        99 => X"1AFFFFFB",
         OTHERS => X"00000000"
     );
 
 BEGIN
-    dout <= dmem(to_integer(unsigned(addr))) WHEN unsigned(addr) >= 64 ELSE
-        X"00000000";
+    dout <= dmem(to_integer(unsigned(addr))); --WHEN unsigned(addr) >= 64 ELSE X"00000000";
     PROCESS (clk)
     BEGIN
         IF (rising_edge(clk)) THEN

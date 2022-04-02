@@ -80,7 +80,7 @@ ARCHITECTURE beh_Processor OF Processor IS
             shiftout : IN STD_LOGIC;
             instr : IN instr_class_type;
             mul_acc : IN mul_acc_type;
-            opalu  : IN optype;
+            opalu : IN optype;
             DP_subclass : IN DP_subclass_type;
             SBit : IN STD_LOGIC;
             ZFlag : OUT STD_LOGIC;
@@ -230,7 +230,7 @@ BEGIN
     DUT2 : regtr PORT MAP(rad1, rad2, clk, wd, addw, rw, rd1, rd2);
     DUT3 : ALU PORT MAP(alu1, alu2, opalu, result, cin, cout);
 
-    DUT4 : flagupd PORT MAP(alu1(31), alu2(31), cout, result, mul_res, cout_s, instr_class, mul_acc, opalu ,DP_subclass, IR(20), ZF, NF, VF, CF,isShift);
+    DUT4 : flagupd PORT MAP(alu1(31), alu2(31), cout, result, mul_res, cout_s, instr_class, mul_acc, opalu, DP_subclass, IR(20), ZF, NF, VF, CF, isShift);
     DUT5 : mem PORT MAP(addr, clk, memin, rd, mw); --rd is dout
 
     DUT6 : cond PORT MAP(IR(31 DOWNTO 28), ZFlag, VFlag, CFlag, NFlag, p);
@@ -408,8 +408,13 @@ BEGIN
                     Rn_val <= rd2;
                     curr <= 43;
                 WHEN 34 =>
-                    lr <= rd1;
-                    curr <= 44;
+                    IF return_class = RET THEN
+                        pcin <= lr;
+                        curr <= 0;
+                    ELSE
+                        lr <= rd1;
+                        curr <= 44;
+                    END IF;
                 WHEN 35 => --swi
                     lr <= (pcout);
                     mode <= '1';
