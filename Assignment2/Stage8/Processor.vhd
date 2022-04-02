@@ -219,7 +219,7 @@ ARCHITECTURE beh_Processor OF Processor IS
     SIGNAL adr2 : STD_LOGIC_VECTOR(1 DOWNTO 0);
 
     SIGNAL mode : STD_LOGIC := '0';
-    SIGNAL PREV : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    SIGNAL PREV : STD_LOGIC_VECTOR(7 DOWNTO 0);
     SIGNAL lr : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL isShift : STD_LOGIC;
 
@@ -306,7 +306,7 @@ BEGIN
     rw <= '1' WHEN (p = '1' AND (curr = 50 OR (curr = 51 AND (mul_acc = smlal OR mul_acc = smull OR mul_acc = umlal OR mul_acc = umull)) OR curr = 6 OR (curr = 40 AND (op = andop OR op = eor OR op = sub OR op = rsb OR op = add OR op = adc OR op = sbc OR op = rsc OR op = orr OR op = mov OR op = bic OR op = mvn)) OR ((curr = 42) AND (W = '1' OR PI = '0')) OR ((curr = 41) AND (W = '1' OR PI = '0')))) ELSE
         '0';
 
-    wd <= input_p WHEN curr = 50 AND PREV = X"06" AND mode = '1' ELSE
+    wd <= input_p WHEN (curr = 50 AND PREV = X"06" AND mode = '1') ELSE
         rin WHEN curr = 50 ELSE
         RES_64(63 DOWNTO 32) WHEN curr = 51 ELSE
         RES_64(31 DOWNTO 0) WHEN curr = 6 ELSE
@@ -377,7 +377,7 @@ BEGIN
                     curr <= 33;
                 WHEN 30 =>
                     RES <= result;
-                    PREV <= result;
+                    PREV <= result(7 downto 0);
                     curr <= 40;
                     IF IR(20) = '1' THEN
                         ZFlag <= ZF;
@@ -412,7 +412,6 @@ BEGIN
                         pcin <= lr;
                         curr <= 0;
                     ELSE
-                        lr <= rd1;
                         curr <= 44;
                     END IF;
                 WHEN 35 => --swi

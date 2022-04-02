@@ -3,11 +3,11 @@ USE IEEE.std_logic_1164.ALL;
 USE IEEE.numeric_std.ALL;
 USE work.MyTypes.ALL;
 
-ENTITY testbench IS
+ENTITY testbenchR IS
 
-END testbench;
+END testbenchR;
 
-ARCHITECTURE tb OF testbench IS
+ARCHITECTURE tbR OF testbenchR IS
     COMPONENT Processor IS
         PORT (
             clk, reset : IN STD_LOGIC;
@@ -20,11 +20,13 @@ ARCHITECTURE tb OF testbench IS
 
 BEGIN
 
-    UUT : Processor PORT MAP(clk, reset,input_p);
+    UUT : Processor PORT MAP(clk, reset, input_p);
     PROCESS
     BEGIN
         reset <= '0';
+
         FOR I IN 0 TO 80 LOOP
+            input_p <= X"00000003"; --last 9 bits    
             clk <= '0';
             WAIT FOR 1 ns;
             clk <= '1';
@@ -32,4 +34,4 @@ BEGIN
         END LOOP;
         WAIT;
     END PROCESS;
-END tb;
+END tbR;

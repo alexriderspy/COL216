@@ -23,19 +23,21 @@ ARCHITECTURE mem_arch OF mem IS
         16 => X"E5900000", --instruction to be executed for swi
         17 => X"E6000011", --rte
         --user program
-        96 => X"EF000000",
-        97 => X"E2001001",
-        98 => X"E3510001",
-        99 => X"1AFFFFFB",
+        96 => X"E3A00002",
+        97 => X"E3E01004",
+        98 => X"E0D23091",
+        99 => X"E0B32091",
+        100 => X"E3A00000",
+        101 => X"E0140190",
         OTHERS => X"00000000"
     );
 
 BEGIN
-    dout <= dmem(to_integer(unsigned(addr))); --WHEN unsigned(addr) >= 64 ELSE X"00000000";
+    dout <= dmem(to_integer(unsigned(addr))); 
     PROCESS (clk)
     BEGIN
         IF (rising_edge(clk)) THEN
-            IF unsigned(addr) >= 64 THEN
+
                 IF wn(3) = '1' THEN
                     dmem(to_integer(unsigned(addr)))(31 DOWNTO 24) <= din(31 DOWNTO 24);
                 END IF;
@@ -48,7 +50,7 @@ BEGIN
                 IF wn(0) = '1' THEN
                     dmem(to_integer(unsigned(addr)))(7 DOWNTO 0) <= din(7 DOWNTO 0);
                 END IF;
-            END IF;
+
         END IF;
     END PROCESS;
 END mem_arch;

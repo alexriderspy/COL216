@@ -1,43 +1,46 @@
 v 4
-file . "Testbench.vhd" "550e70efb0ce05d27d45646c643a038c46f0d1c7" "20220402174146.561":
-  entity testbench at 1( 0) + 0 on 1269;
-  architecture tb of testbench at 10( 129) + 0 on 1270;
-file . "PMconnect.vhd" "4ee91fe76a098edd11e25e29029237e5b5cdc99d" "20220402174146.560":
-  entity pmconnect at 1( 0) + 0 on 1267;
-  architecture beh_pmconnect of pmconnect at 20( 557) + 0 on 1268;
-file . "Left-Shifter.vhd" "333482d50ed01fc36a723d12cf60b4d707865324" "20220402174146.559":
-  entity left_shifter at 1( 0) + 0 on 1265;
-  architecture beh_left_shifter of left_shifter at 16( 379) + 0 on 1266;
-file . "Shift-Rotate.vhd" "d227a576e6600372e3afa55b5056f8c49b74ebfa" "20220402174146.558":
-  entity sh_ror at 1( 0) + 0 on 1263;
-  architecture beh_sh_ror of sh_ror at 18( 414) + 0 on 1264;
-file . "Flagupd.vhd" "c39a60d7cddf23d48ce4630c1957594497474c61" "20220402174146.558":
-  entity flagupd at 1( 0) + 0 on 1261;
-  architecture flag_arch of flagupd at 27( 715) + 0 on 1262;
-file . "Right-Shifter.vhd" "7decaac5e9ff91ee76bf320a6dc3126eb6a0c192" "20220402174146.556":
-  entity right_shifter at 1( 0) + 0 on 1259;
-  architecture beh_right_shifter of right_shifter at 17( 410) + 0 on 1260;
-file . "Decoder.vhd" "c0a10bbbc9436750b90921f42bb5d99f58c5f5d6" "20220402174146.555":
-  entity decoder at 1( 0) + 0 on 1257;
-  architecture decoder_arch of decoder at 30( 779) + 0 on 1258;
-file . "Register.vhd" "87937450cf341607d5f40936140aeb7ac5e02965" "20220402174146.554":
-  entity regtr at 1( 0) + 0 on 1255;
-  architecture register_arch of regtr at 18( 458) + 0 on 1256;
-file . "Mul-acc.vhd" "de7fb35d087c68405957b71a4095ddd14350cafd" "20220402174146.553":
-  entity mul_accu at 1( 0) + 0 on 1253;
-  architecture beh_mul_acc of mul_accu at 17( 434) + 0 on 1254;
-file . "Cond.vhd" "edfaddebe2d0af0205d2a791b1abacf803056968" "20220402174146.552":
-  entity cond at 1( 0) + 0 on 1251;
-  architecture cond_arch of cond at 16( 321) + 0 on 1252;
-file . "Processor.vhd" "28488007898ce3767c7dcf0bf66a6990051221d6" "20220402174146.552":
-  entity processor at 1( 0) + 0 on 1249;
-  architecture beh_processor of processor at 13( 239) + 0 on 1250;
-file . "Mem.vhd" "80831aa42f94f02d5421ddf72cc2ca385a6e6cc5" "20220402174146.548":
-  entity mem at 1( 0) + 0 on 1247;
-  architecture mem_arch of mem at 15( 331) + 0 on 1248;
-file . "ALU.vhd" "9ced480ccb6e60c9a9ed2ac48a83aa41cc42ca89" "20220402174146.547":
-  entity alu at 1( 0) + 0 on 1245;
-  architecture beh_alu of alu at 16( 350) + 0 on 1246;
-file . "MyTypes.vhd" "6194cca9f48d32182630195fe2400a6d15a533bf" "20220402174146.545":
-  package mytypes at 1( 0) + 0 on 1243;
-  package body mytypes at 26( 998) + 0 on 1244;
+file . "TestbenchR.vhd" "1871155fc1a0a16dd3a439d5155ac9b6b0f44c2a" "20220402182206.217":
+  entity testbenchr at 1( 0) + 0 on 1627;
+  architecture tbr of testbenchr at 10( 131) + 0 on 1628;
+file . "PMconnect.vhd" "4ee91fe76a098edd11e25e29029237e5b5cdc99d" "20220402182206.216":
+  entity pmconnect at 1( 0) + 0 on 1623;
+  architecture beh_pmconnect of pmconnect at 20( 557) + 0 on 1624;
+file . "Left-Shifter.vhd" "333482d50ed01fc36a723d12cf60b4d707865324" "20220402182206.214":
+  entity left_shifter at 1( 0) + 0 on 1621;
+  architecture beh_left_shifter of left_shifter at 16( 379) + 0 on 1622;
+file . "Shift-Rotate.vhd" "d227a576e6600372e3afa55b5056f8c49b74ebfa" "20220402182206.213":
+  entity sh_ror at 1( 0) + 0 on 1619;
+  architecture beh_sh_ror of sh_ror at 18( 414) + 0 on 1620;
+file . "Flagupd.vhd" "c39a60d7cddf23d48ce4630c1957594497474c61" "20220402182206.213":
+  entity flagupd at 1( 0) + 0 on 1617;
+  architecture flag_arch of flagupd at 27( 715) + 0 on 1618;
+file . "Right-Shifter.vhd" "7decaac5e9ff91ee76bf320a6dc3126eb6a0c192" "20220402182206.212":
+  entity right_shifter at 1( 0) + 0 on 1615;
+  architecture beh_right_shifter of right_shifter at 17( 410) + 0 on 1616;
+file . "Decoder.vhd" "c0a10bbbc9436750b90921f42bb5d99f58c5f5d6" "20220402182206.210":
+  entity decoder at 1( 0) + 0 on 1613;
+  architecture decoder_arch of decoder at 30( 779) + 0 on 1614;
+file . "Register.vhd" "87937450cf341607d5f40936140aeb7ac5e02965" "20220402182206.209":
+  entity regtr at 1( 0) + 0 on 1611;
+  architecture register_arch of regtr at 18( 458) + 0 on 1612;
+file . "Mul-acc.vhd" "de7fb35d087c68405957b71a4095ddd14350cafd" "20220402182206.209":
+  entity mul_accu at 1( 0) + 0 on 1609;
+  architecture beh_mul_acc of mul_accu at 17( 434) + 0 on 1610;
+file . "Cond.vhd" "edfaddebe2d0af0205d2a791b1abacf803056968" "20220402182206.208":
+  entity cond at 1( 0) + 0 on 1607;
+  architecture cond_arch of cond at 16( 321) + 0 on 1608;
+file . "Processor.vhd" "7f204355320a82001e7a50d92407d277211f41dc" "20220402182206.207":
+  entity processor at 1( 0) + 0 on 1605;
+  architecture beh_processor of processor at 13( 239) + 0 on 1606;
+file . "Mem.vhd" "9e3398ab675e0d31cbbf97977b0480990db8aa19" "20220402182206.204":
+  entity mem at 1( 0) + 0 on 1603;
+  architecture mem_arch of mem at 15( 331) + 0 on 1604;
+file . "ALU.vhd" "9ced480ccb6e60c9a9ed2ac48a83aa41cc42ca89" "20220402182206.204":
+  entity alu at 1( 0) + 0 on 1601;
+  architecture beh_alu of alu at 16( 350) + 0 on 1602;
+file . "MyTypes.vhd" "6194cca9f48d32182630195fe2400a6d15a533bf" "20220402182206.202":
+  package mytypes at 1( 0) + 0 on 1599;
+  package body mytypes at 26( 998) + 0 on 1600;
+file . "Testbench.vhd" "550e70efb0ce05d27d45646c643a038c46f0d1c7" "20220402182206.216":
+  entity testbench at 1( 0) + 0 on 1625;
+  architecture tb of testbench at 10( 129) + 0 on 1626;
