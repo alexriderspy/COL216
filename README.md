@@ -1,5 +1,3 @@
-# COL216
+# COL216 - Computer Architecture
 
-Quiz-3 possible questions
-1) TLB
-2) I/O
+This repository contains all notes, books and assignments done as a part of this course. This was one of my most cherished courses so far. Hope you find this repository useful!
